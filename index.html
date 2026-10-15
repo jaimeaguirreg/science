@@ -1,0 +1,1172 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Jero's Science Quest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: same single-column "quest board" family as Jero's other exams — hero, mission picker, one open mission at a time.
+   Science twist: a lab-notebook grid background and "lab badges" (one per mission).
+   Deliberately one bright daytime look (no dark variant): every color is set explicitly. */
+:root{
+  --map:#EDF3FB; --contour:rgba(31,122,224,.10); --paper:#FFFFFF; --ink:#1C2A3E; --muted:#56677F; --line:#CFDCD3;
+  --sun:#FFC23A; --sun-deep:#B07C00; --sun-soft:#FFF3D0;
+  --leaf:#12916F; --leaf-deep:#0B6E53; --leaf-soft:#DCF3EA;
+  --coral:#E8553F; --coral-deep:#B33A27; --coral-soft:#FFE4DD;
+  --grape:#6A4DF5; --grape-deep:#4B31C9; --grape-soft:#ECE7FF;
+  --pink:#D9387E; --pink-deep:#A3205A; --pink-soft:#FDE3EF;
+  --blue:#1F7AE0; --blue-deep:#1559A8; --blue-soft:#DDEBFC;
+  --orange:#EF7D1B; --orange-deep:#B35A0A; --orange-soft:#FFE9D3;
+  --night:#23305A; --ink-soft:#E3E8F3;
+  --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{
+  background-color:var(--map);
+  background-image:
+    linear-gradient(var(--contour) 2px, transparent 2px),
+    linear-gradient(90deg, var(--contour) 2px, transparent 2px),
+    linear-gradient(rgba(31,122,224,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31,122,224,.05) 1px, transparent 1px);
+  background-size:120px 120px,120px 120px,24px 24px,24px 24px;
+  background-attachment:fixed;
+  color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:20px 64px;
+}
+.wrap{max-width:920px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3,legend,.btn,.display{font-family:var(--display)}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.15}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--grape);outline-offset:3px}
+a{color:var(--blue-deep)}
+
+.t-leaf{--c:var(--leaf);--c-deep:var(--leaf-deep);--c-soft:var(--leaf-soft);--c-on:#FFF}
+.t-coral{--c:var(--coral);--c-deep:var(--coral-deep);--c-soft:var(--coral-soft);--c-on:#FFF}
+.t-grape{--c:var(--grape);--c-deep:var(--grape-deep);--c-soft:var(--grape-soft);--c-on:#FFF}
+.t-sun{--c:var(--sun);--c-deep:var(--sun-deep);--c-soft:var(--sun-soft);--c-on:var(--ink)}
+.t-pink{--c:var(--pink);--c-deep:var(--pink-deep);--c-soft:var(--pink-soft);--c-on:#FFF}
+.t-blue{--c:var(--blue);--c-deep:var(--blue-deep);--c-soft:var(--blue-soft);--c-on:#FFF}
+.t-orange{--c:var(--orange);--c-deep:var(--orange-deep);--c-soft:var(--orange-soft);--c-on:#FFF}
+.t-ink{--c:var(--night);--c-deep:var(--ink);--c-soft:var(--ink-soft);--c-on:#FFF}
+
+/* ---------- hero ---------- */
+.hero{background:var(--paper);border:3px solid var(--ink);border-radius:26px;padding:22px 24px;
+  box-shadow:0 7px 0 var(--ink);display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;position:relative;overflow:hidden}
+.hero .kicker{font-family:var(--display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:.8rem;color:var(--leaf-deep)}
+.hero h1{font-size:clamp(2rem,6vw,3.05rem);font-weight:700;margin-top:4px}
+.hero h1 .name{color:var(--coral)}
+.hero h1 .quest{background:var(--sun);padding:0 .25em;border-radius:12px;display:inline-block;transform:rotate(-2deg)}
+.hero .lead{color:var(--muted);margin-top:8px;max-width:56ch}
+.hero .rank{margin-top:10px;display:inline-flex;gap:8px;align-items:center;font-family:var(--display);font-weight:600;font-size:.92rem;
+  background:var(--leaf-soft);color:var(--leaf-deep);border-radius:999px;padding:4px 12px}
+.hero .stamp-bg{position:absolute;right:170px;top:-26px;width:120px;height:120px;border:5px dashed var(--line);border-radius:50%;transform:rotate(14deg);pointer-events:none}
+.score-pod{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--night);color:#FFF;border-radius:20px;padding:14px 18px;min-width:160px}
+.score-pod .stars{font-family:var(--display);font-size:1.9rem;font-weight:700;color:var(--sun);line-height:1;font-variant-numeric:tabular-nums}
+.score-pod small{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.score-pod .pts{font-family:var(--display);font-size:1.02rem;font-variant-numeric:tabular-nums}
+@media (max-width:640px){.hero{grid-template-columns:1fr}.score-pod{flex-direction:row;justify-content:space-between;flex-wrap:wrap;min-width:0}.hero .stamp-bg{display:none}}
+
+/* ---------- mission picker ---------- */
+.missions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.missions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mcard{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--paper);border:3px solid var(--line);
+  border-radius:18px;padding:12px 14px 14px;cursor:pointer;transition:transform .12s,border-color .12s;min-width:0;overflow:hidden}
+.mcard:hover{transform:translateY(-2px);border-color:var(--ink)}
+.mcard[aria-current="true"]{border-color:var(--ink);box-shadow:0 5px 0 var(--ink)}
+.mcard .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mcard .num{font-family:var(--display);font-weight:700;font-size:1.05rem;line-height:1;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--c);color:var(--c-on)}
+.mcard .mini-stars{color:var(--sun-deep);letter-spacing:1px;font-size:1rem}
+.mcard .t{font-family:var(--display);font-weight:600;font-size:1.02rem;line-height:1.2}
+.mcard .topic{font-size:.8rem;color:var(--muted);line-height:1.3}
+.mcard .bar{height:7px;border-radius:999px;background:var(--c-soft);overflow:hidden}
+.mcard .bar span{display:block;height:100%;background:var(--c);border-radius:999px}
+.mcard .status{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.mcard .status b{color:var(--ink)}
+.mcard .sello{position:absolute;right:-8px;bottom:12px;transform:rotate(-14deg);font-family:var(--display);font-weight:700;font-size:.7rem;letter-spacing:.1em;
+  color:var(--c-deep);border:2px solid var(--c-deep);border-radius:8px;padding:1px 6px;background:var(--paper);opacity:.9}
+.t-sun .sello{color:var(--sun-deep);border-color:var(--sun-deep)}
+.extra{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.extra{grid-template-columns:1fr}}
+.xbtn{display:flex;justify-content:space-between;align-items:center;gap:10px;border:3px solid var(--ink);border-radius:18px;padding:12px 18px;cursor:pointer;
+  font-family:var(--display);font-weight:600;font-size:1.05rem;flex-wrap:wrap;text-align:left}
+.xbtn span:last-child{font-weight:500;font-size:.88rem;opacity:.85}
+.xbtn.rayo{background:var(--sun);color:var(--ink)}
+.xbtn.rayo[aria-current="true"]{box-shadow:0 5px 0 var(--ink)}
+.xbtn.res{background:var(--ink);color:#FFF}
+.xbtn.res[aria-current="true"]{box-shadow:0 5px 0 var(--sun-deep);background:var(--night)}
+
+/* ---------- mission stage ---------- */
+.stage{background:var(--paper);border:3px solid var(--ink);border-radius:26px;padding:24px;display:flex;flex-direction:column;gap:22px;min-width:0}
+@media (max-width:600px){.stage{padding:18px 14px}}
+.m-head{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.m-badge{width:64px;height:64px;border-radius:20px;background:var(--c);color:var(--c-on);border:3px solid var(--ink);display:grid;place-items:center;
+  font-family:var(--display);font-weight:700;font-size:2rem;transform:rotate(-4deg);box-shadow:0 4px 0 var(--ink)}
+.m-head .kicker{font-family:var(--display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:.8rem;color:var(--c-deep)}
+.t-sun .m-head .kicker{color:var(--sun-deep)}
+.m-head h2{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:700}
+.m-head .sub{color:var(--muted)}
+.tip{background:var(--c-soft);border-radius:18px;padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.tip summary{font-family:var(--display);font-weight:600;cursor:pointer;color:var(--ink);font-size:1.05rem}
+.tip p{max-width:70ch}
+.tip ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px;max-width:70ch}
+.vocab{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.vocab .lbl{font-family:var(--display);font-weight:600;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.vocab span.w{background:var(--paper);border:2px solid var(--line);border-radius:999px;padding:1px 10px;font-size:.88rem}
+.vocab span.w i{color:var(--muted);font-style:normal}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:4px 12px;font-family:var(--display);font-weight:600;font-size:.86rem;color:var(--ink);text-decoration:none}
+.links a:hover{background:var(--sun-soft)}
+.links a svg{width:14px;height:14px;flex:none}
+
+.qs-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:3px dotted var(--line);padding-top:20px}
+.qs-title h3{font-size:1.4rem}
+.prog{display:flex;align-items:center;gap:10px;min-width:180px;flex:0 1 280px}
+.prog .track{flex:1;height:12px;background:var(--c-soft);border-radius:999px;overflow:hidden;border:2px solid var(--ink)}
+.prog .fill{height:100%;background:var(--c);transition:width .25s}
+.prog small{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:14px;padding:11px 20px;font-weight:600;font-size:1.05rem;cursor:pointer;
+  background:var(--sun);color:var(--ink);box-shadow:0 4px 0 var(--sun-deep);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sun-deep)}
+.btn.leaf{background:var(--leaf);color:#FFF;box-shadow:0 4px 0 var(--leaf-deep)}
+.btn.leaf:active{box-shadow:0 1px 0 var(--leaf-deep)}
+.btn.plain{background:var(--paper);border:2px solid var(--ink);box-shadow:0 4px 0 var(--ink)}
+.btn.plain:active{box-shadow:0 1px 0 var(--ink)}
+.btn.coral{background:var(--coral);color:#FFF;box-shadow:0 4px 0 var(--coral-deep)}
+.btn.ghost{background:transparent;box-shadow:none;border:2px solid rgba(255,255,255,.5);color:#FFF}
+.btn.small{padding:7px 14px;font-size:.95rem}
+
+/* ---------- questions ---------- */
+.qs{display:flex;flex-direction:column;gap:14px;margin:0;padding:0;list-style:none}
+.qs > li{border:2px solid var(--line);border-radius:18px;padding:14px 16px;background:var(--paper);transition:border-color .15s;min-width:0}
+.qs > li.ok{border-color:var(--leaf);background:linear-gradient(var(--leaf-soft),var(--paper) 70%)}
+.qs > li.part{border-color:var(--sun-deep);background:linear-gradient(var(--sun-soft),var(--paper) 70%)}
+.qs > li.bad{border-color:var(--coral);background:linear-gradient(var(--coral-soft),var(--paper) 70%)}
+.qs > li.todo{border-color:var(--coral);border-style:dashed}
+fieldset.q{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+fieldset.q legend{font-weight:600;font-size:1.08rem;display:flex;gap:10px;align-items:flex-start;padding:0;margin-bottom:10px;line-height:1.38;font-family:var(--body)}
+fieldset.q legend b{font-weight:700;color:var(--c-deep)}
+.t-sun fieldset.q legend b{color:var(--sun-deep)}
+.qn{flex:none;display:grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border-radius:10px;background:var(--ink);color:#FFF;font-size:.95rem;font-family:var(--display);font-variant-numeric:tabular-nums}
+.qtype{display:inline-block;margin-left:6px;font-family:var(--display);font-weight:600;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--c-deep);background:var(--c-soft);border-radius:999px;padding:1px 8px;vertical-align:2px}
+.t-sun .qtype{color:var(--sun-deep)}
+.pts-tag{font-weight:400;color:var(--muted);font-size:.85rem;white-space:nowrap}
+
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.opts.tf{grid-template-columns:repeat(2,minmax(0,220px))}
+@media (max-width:620px){.opts{grid-template-columns:1fr}.opts.tf{grid-template-columns:1fr 1fr}}
+.opt{position:relative;display:flex;gap:10px;align-items:center;border:2px solid var(--line);border-radius:14px;padding:10px 12px;cursor:pointer;background:var(--paper);transition:border-color .12s,background .12s;min-width:0}
+.opt:hover{border-color:var(--grape)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .letter{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line);font-family:var(--display);font-weight:600;font-size:.9rem}
+.opt .txt{min-width:0;overflow-wrap:anywhere}
+.opt:has(input:checked){border-color:var(--grape);background:var(--grape-soft)}
+.opt:has(input:checked) .letter{background:var(--grape);border-color:var(--grape);color:#FFF}
+.opt:has(input:focus-visible){outline:3px solid var(--grape);outline-offset:2px}
+.locked .opt{cursor:default}
+.locked .opt:hover{border-color:var(--line)}
+.opt.right{border-color:var(--leaf)!important;background:var(--leaf-soft)!important}
+.opt.right .letter{background:var(--leaf)!important;border-color:var(--leaf)!important;color:#FFF}
+.opt.wrong{border-color:var(--coral)!important;background:var(--coral-soft)!important}
+.opt.wrong .letter{background:var(--coral)!important;border-color:var(--coral)!important;color:#FFF}
+.opt .flag{margin-left:auto;font-family:var(--display);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.opt.right .flag{color:var(--leaf-deep)} .opt.wrong .flag{color:var(--coral-deep)}
+
+/* match */
+.mlist{display:flex;flex-direction:column;gap:8px}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:10px;align-items:center;border:2px solid var(--line);border-radius:14px;padding:8px 10px}
+@media (max-width:620px){.mrow{grid-template-columns:1fr}}
+.mrow .left{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.mrow select{width:100%;min-width:0;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;background:var(--paper);cursor:pointer}
+.mrow select:disabled{opacity:1;cursor:default}
+.mrow.right{border-color:var(--leaf);background:var(--leaf-soft)}
+.mrow.wrong{border-color:var(--coral);background:var(--coral-soft)}
+.mrow .fix{grid-column:1/-1;font-size:.9rem;color:var(--coral-deep);font-weight:700}
+
+/* sort */
+.slist{display:flex;flex-direction:column;gap:8px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center;border:2px solid var(--line);border-radius:14px;padding:8px 10px}
+@media (max-width:700px){.srow{grid-template-columns:1fr}}
+.srow .item{min-width:0;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{position:relative;cursor:pointer}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;border:2px solid var(--line);border-radius:999px;padding:4px 12px;font-family:var(--display);font-weight:600;font-size:.88rem;background:var(--paper);white-space:nowrap}
+.chip:hover span{border-color:var(--c)}
+.chip input:checked + span{background:var(--c);border-color:var(--c);color:var(--c-on)}
+.chip input:focus-visible + span{outline:3px solid var(--grape);outline-offset:2px}
+.locked .chip{cursor:default}
+.srow.right{border-color:var(--leaf);background:var(--leaf-soft)}
+.srow.wrong{border-color:var(--coral);background:var(--coral-soft)}
+.srow .fix{grid-column:1/-1;font-size:.9rem;color:var(--coral-deep);font-weight:700}
+
+/* open */
+.open textarea{width:100%;min-height:130px;border:3px solid var(--ink);border-radius:14px;padding:10px 14px;background:var(--paper);resize:vertical;line-height:1.5}
+.open textarea[readonly]{background:var(--ink-soft);border-color:var(--line)}
+.open .orow{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-top:8px}
+.open .wc{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.open .omsg{font-size:.92rem;color:var(--coral-deep);font-weight:700}
+.ideas{margin-top:10px;background:var(--sun-soft);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.ideas .ih{font-family:var(--display);font-weight:600}
+.ideas .ih small{font-family:var(--body);font-weight:400;color:var(--muted);display:block;font-size:.88rem}
+.idea{display:flex;gap:10px;align-items:flex-start;cursor:pointer;line-height:1.4}
+.idea input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--leaf)}
+
+.verdict{font-family:var(--display);font-weight:600}
+.verdict.ok{color:var(--leaf-deep)} .verdict.bad{color:var(--coral-deep)} .verdict.part{color:var(--sun-deep)}
+.how{margin-top:10px;background:var(--map);border-radius:12px;padding:10px 14px;font-size:.98rem;display:flex;gap:10px;align-items:flex-start}
+.how .lbl{flex:none;font-family:var(--display);font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;background:var(--ink);color:#FFF;border-radius:999px;padding:3px 9px;margin-top:2px}
+
+.check-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.check-msg{font-size:.95rem;color:var(--coral-deep);font-weight:700}
+.banner{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;background:var(--night);color:#FFF;border-radius:20px;padding:16px 20px}
+@media (max-width:640px){.banner{grid-template-columns:1fr}}
+.banner .big{font-family:var(--display);font-weight:700;font-size:2.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.banner .big small{font-size:1rem;opacity:.7}
+.banner .bstars{font-size:1.8rem;color:var(--sun);letter-spacing:4px}
+.banner .bstars .off{color:rgba(255,255,255,.25)}
+.banner p{font-size:1rem}
+.banner .acts{display:flex;flex-wrap:wrap;gap:10px}
+.pop{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.85);opacity:.3}to{transform:scale(1);opacity:1}}
+
+/* ---------- lightning round ---------- */
+.rayo-card{background:var(--night);color:#FFF;border-radius:22px;padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+.rayo-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.rayo-top .streak{color:var(--sun)}
+.rtimer{height:14px;border-radius:999px;background:rgba(255,255,255,.15);overflow:hidden}
+.rtimer span{display:block;height:100%;background:var(--sun);border-radius:999px}
+.rtimer span.low{background:var(--coral)}
+.rayo-q{font-family:var(--display);font-weight:600;font-size:clamp(1.2rem,3.6vw,1.55rem);line-height:1.3}
+.rayo-q b{color:var(--sun)}
+.ropts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:620px){.ropts{grid-template-columns:1fr}}
+.ropt{display:flex;gap:10px;align-items:center;text-align:left;background:#FFF;color:var(--ink);border:3px solid transparent;border-radius:14px;padding:12px 14px;cursor:pointer;font-size:1rem;min-width:0}
+.ropt:hover{border-color:var(--sun)}
+.ropt .letter{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--ink-soft);font-family:var(--display);font-weight:700}
+.ropt.right{background:var(--leaf-soft);border-color:var(--leaf)}
+.ropt.right .letter{background:var(--leaf);color:#FFF}
+.ropt.wrong{background:var(--coral-soft);border-color:var(--coral)}
+.ropt.wrong .letter{background:var(--coral);color:#FFF}
+.ropt:disabled{cursor:default}
+.rfeed{font-family:var(--display);font-weight:600;min-height:1.5em}
+.rfeed.ok{color:#7EE2BF}.rfeed.bad{color:#FFB3A6}
+.rayo-intro{display:flex;flex-direction:column;gap:12px}
+.rayo-intro ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.rbig{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;color:var(--sun);font-variant-numeric:tabular-nums}
+
+/* ---------- results ---------- */
+.res-wrap{overflow-x:auto}
+.res-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:520px}
+.res-table th,.res-table td{text-align:left;padding:10px 8px;border-bottom:2px solid var(--line)}
+.res-table th{font-family:var(--display);font-weight:600;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.res-table td.n,.res-table th.n{text-align:right;white-space:nowrap}
+.res-table tfoot td{font-family:var(--display);font-weight:700;border-bottom:0}
+.res-table .dot{display:inline-block;width:12px;height:12px;border-radius:4px;background:var(--c);margin-right:8px;vertical-align:middle}
+.final{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;background:var(--night);color:#FFF;border-radius:22px;padding:18px 22px}
+@media (max-width:600px){.final{grid-template-columns:1fr}}
+.final .big{font-family:var(--display);font-weight:700;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.final .big small{font-size:1.1rem;opacity:.7}
+.final h3{font-size:1.5rem;color:var(--sun)}
+.passport{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:620px){.passport{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pstamp{aspect-ratio:1;max-width:100%;border:3px dashed var(--line);border-radius:50%;display:grid;place-items:center;text-align:center;padding:10px;font-family:var(--display);font-weight:600;font-size:.82rem;color:var(--muted);line-height:1.2}
+.pstamp.on{border:4px double var(--c-deep);color:var(--c-deep);background:var(--c-soft);transform:rotate(-8deg)}
+.t-sun .pstamp.on{border-color:var(--sun-deep);color:var(--sun-deep)}
+.pstamp .ps{display:block;color:var(--sun-deep);font-size:1rem;letter-spacing:1px}
+.ladder{display:flex;flex-wrap:wrap;gap:8px}
+.ladder span{font-family:var(--display);font-weight:600;font-size:.85rem;border:2px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--muted)}
+.ladder span.on{background:var(--leaf);border-color:var(--leaf);color:#FFF}
+.parents{background:var(--sun-soft);border-radius:16px;padding:14px 18px;display:flex;flex-direction:column;gap:6px;font-size:.95rem}
+.parents b{font-family:var(--display)}
+.row-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.confirm{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--coral-soft);border-radius:14px;padding:10px 14px}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:20;width:100%;height:100%}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- additions: reading passages, multi-select, fill-in, bonus group ---------- */
+.qs > li.reading{border:3px solid var(--ink);background:var(--sun-soft);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.reading .rk{font-family:var(--display);font-weight:600;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--sun-deep)}
+.reading h4{font-family:var(--display);font-size:1.3rem;margin:0;line-height:1.2}
+.reading .rtext{display:flex;flex-direction:column;gap:8px;max-width:68ch;font-size:1.04rem;line-height:1.65}
+.reading .rtip{font-size:.9rem;color:var(--muted)}
+.fillrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.fillin{width:min(100%,260px);border:3px solid var(--ink);border-radius:14px;padding:9px 14px;font-family:var(--display);font-size:1.2rem;font-weight:600;background:var(--paper)}
+.fillin::placeholder{color:#A9B6CF;font-weight:500;font-size:1rem}
+.fillin:disabled{opacity:1}
+.fillin.right{border-color:var(--leaf);background:var(--leaf-soft)}
+.fillin.wrong{border-color:var(--coral);background:var(--coral-soft);text-decoration:line-through;text-decoration-thickness:2px}
+.hint{font-size:.85rem;color:var(--muted)}
+.opt .box{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;border:2px solid var(--line);font-family:var(--display);font-weight:700;font-size:.9rem;color:transparent}
+.opt:has(input:checked) .box{background:var(--grape);border-color:var(--grape);color:#FFF}
+.opt.right .box{background:var(--leaf)!important;border-color:var(--leaf)!important;color:#FFF}
+.opt.wrong .box{background:var(--coral)!important;border-color:var(--coral)!important;color:#FFF}
+.opt.missed{border-color:var(--leaf)!important;border-style:dashed!important}
+.opt.missed .flag{color:var(--leaf-deep)}
+.nav-head{grid-column:1/-1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:6px}
+.nav-head b{font-family:var(--display);font-size:1.1rem}
+.nav-head span{color:var(--muted);font-size:.9rem}
+.mcard.bonus{border-style:dashed}
+.tips{background:var(--grape-soft);border-radius:16px;padding:12px 16px;display:flex;flex-direction:column;gap:4px;font-size:.96rem}
+.tips b{font-family:var(--display)}
+.res-table tr.sub td{font-family:var(--display);font-weight:600;color:var(--muted);font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;padding-top:18px}
+</style>
+
+<canvas id="confetti" hidden></canvas>
+<div class="wrap">
+  <header class="hero">
+    <span class="stamp-bg" aria-hidden="true"></span>
+    <div style="position:relative">
+      <p class="kicker">Science lab · Competency test practice</p>
+      <h1><span class="name">Jero's</span> Science <span class="quest">Quest</span></h1>
+      <p class="lead">Hi Jero! Your test is about <b>forces</b>, <b>motion</b>, <b>simple and complex machines</b>, <b>Newton’s three laws</b> and <b>renewable and non-renewable energy</b>. Finish the 8 missions to earn stars and lab badges, then try the <b>Lightning Round</b>. Think like a scientist! 🔬</p>
+      <p class="rank" id="heroRank"></p>
+    </div>
+    <div class="score-pod" aria-live="polite">
+      <small>Stars</small>
+      <span class="stars" id="podStars">★ 0/24</span>
+      <span class="pts" id="podPts">0 points</span>
+    </div>
+  </header>
+
+  <nav class="missions" id="nav" aria-label="Missions"></nav>
+
+  <main class="stage" id="stage"></main>
+</div>
+
+<script>
+/* =================== CONTENT =================== */
+/* mc: first option is the right one (shuffled on screen unless fx). tf: true/false. multi: a = indexes of ALL right options.
+   fill: a = accepted answers (lower case unless cs). match: [left, right] pairs. sort: items [text, category]. wq: writing task. */
+const mc = (q, o, x, extra) => Object.assign({t:'mc', q, o, x}, extra || {});
+const tf = (q, a, x, extra) => Object.assign({t:'tf', q, a, x}, extra || {});
+const multi = (q, o, a, x, extra) => Object.assign({t:'multi', q, o, a, x}, extra || {});
+const fill = (q, a, x, extra) => Object.assign({t:'fill', q, a, x}, extra || {});
+const match = (q, pairs, x, ord, extra) => Object.assign({t:'match', q, pairs, x, ord:!!ord}, extra || {});
+const sort = (q, cats, items, x, extra) => Object.assign({t:'sort', q, cats, items, x}, extra || {});
+const wq = (q, ideas, x) => ({t:'open', q, ideas, x});
+const R = n => ({r:n});
+const C = id => 'https://canva.link/' + id;
+const S = {
+  1:{t:'Class slides: Session 1 · Scientific method', u:C('ra7z5zjfak1sp54')},
+  2:{t:'Class slides: Session 2 · Force and motion', u:C('lvh05f6kpdkmec0')},
+  3:{t:'Class slides: Session 3 · Contact and non-contact forces', u:C('1f47apdu5qv0omo')},
+  4:{t:'Class slides: Session 4 · Force arrows and balance', u:C('76fvtpm81e9zgyq')},
+  5:{t:'Class slides: Session 5 · Simple machines', u:C('ro5i67kj4x4zj3c')},
+  6:{t:'Class slides: Session 6 · Motion and Newton’s laws', u:C('pqfwm8f6rakpfof')},
+  7:{t:'Class slides: Session 7 · Newton’s laws lab', u:C('v51gjvq1il5qwys')},
+  8:{t:'Class slides: Session 8 · Complex machines', u:C('avkeymo6k0lc9p6')},
+  9:{t:'Class slides: Session 9 · Energy', u:C('3zpkvxrao9fs99i')},
+  10:{t:'Class slides: Session 10 · Fossil fuels', u:C('64c8oo0ktumfiu9')},
+  11:{t:'Class slides: Session 11 · Ecolincolnians', u:C('kez6iij8kugbgrz')}
+};
+
+const MISSIONS = [
+{ id:'m1', num:1, title:'Push, Pull & No Touch', topic:'Forces: contact and non-contact forces', color:'coral',
+  links:[S[2], S[3]],
+  review:['A <b>force</b> is a <b>push or a pull</b>. It can change an object’s <b>motion, direction or shape</b>.',
+          '<b>Push</b>: moves something <b>away</b> from you. <b>Pull</b>: moves something <b>toward</b> you.',
+          '<b>Contact forces</b> happen when two objects <b>touch</b>: kicking a ball, pushing a book, squeezing a rubber ball, hugging a friend, friction.',
+          '<b>Non-contact forces</b> act <b>without touching</b>, over a distance: <b>gravity</b>, <b>magnetic force</b> and <b>electrostatic force</b>.',
+          '<b>Gravity</b> pulls objects toward each other: it keeps us on the ground and makes things fall. <b>Magnets</b> attract or repel. In <b>electrostatic force</b>, like charges repel and opposite charges attract.',
+          '<b>Friction</b> slows things down. It acts <b>opposite</b> to the motion (mud, grass, rough floors).'],
+  vocab:[['force','fuerza'],['push','empujar'],['pull','halar'],['friction','fricción'],['gravity','gravedad'],['attract','atraer'],['repel','repeler']],
+  questions:[
+    mc('What is a <b>force</b>?', ['A push or a pull that can change an object’s motion, direction or shape','A type of fuel that only cars use','The speed of a car on a road','A machine with many parts'], 'A force is a push or a pull.'),
+    mc('A <b>push</b> is a force that…', ['moves something away from you','moves something toward you','only works without touching','only makes things fall down'], 'Push = away from you. Pull = toward you.'),
+    sort('Is it a <b>push</b> or a <b>pull</b>?', ['Push','Pull'], [['Kicking a soccer ball',0],['Opening a drawer',1],['Pushing a shopping cart',0],['Pulling a wagon with a rope',1],['Pressing an elevator button',0],['Pulling the rope in tug of war',1]], 'Away from you = push. Toward you = pull.'),
+    sort('Is it a <b>contact</b> or a <b>non-contact</b> force?', ['Contact','Non-contact'], [['Kicking a ball',0],['A magnet attracts a paper clip',1],['An apple falls from a tree',1],['Squeezing a rubber ball',0],['Hugging your friend',0],['A rubbed balloon lifts your hair without touching it',1],['Friction between your shoes and the floor',0]], 'If the objects touch, it is a contact force. Gravity, magnets and electric charges act without touching.'),
+    match('Match each <b>non-contact force</b> with what it does.', [['Gravity','Pulls objects toward the center of the Earth'],['Magnetic force','Acts between magnets and magnetic objects'],['Electrostatic force','Acts between objects with an electric charge']], 'Gravity = falling. Magnetic = magnets. Electrostatic = electric charges.'),
+    mc('Which force keeps us on the ground and makes things fall down?', ['Gravity','Magnetic force','Friction','A push'], 'Gravity pulls objects toward the Earth.'),
+    tf('Two magnets can attract or repel each other without touching.', true, 'True. Magnetic force is a non-contact force.'),
+    fill('Complete with ONE word (attract or repel): “In electrostatic force, <b>like</b> charges ______.”', ['repel'], 'Like charges repel. Opposite charges attract.'),
+    multi('Choose <b>ALL</b> the non-contact forces.', ['Gravity','Magnetic force','Electrostatic force','Friction','A push with your hand','Kicking a ball'], [0,1,2], 'Gravity, magnetic and electrostatic forces act without touching. Friction, pushing and kicking need contact.'),
+    mc('Why is it harder to ride a bike on grass than on smooth concrete?', ['The grass makes more friction, so it slows the bike down','The grass has less gravity','The grass pushes the bike forward','The concrete has magnets'], 'Friction is a force that slows things down. Rough surfaces like grass make more friction.'),
+    mc('Friction acts…', ['opposite to the direction of the motion','in the same direction as the motion','only upward','only in space'], 'Friction always works against the motion.'),
+    tf('Contact forces can make objects move, but they can never change an object’s shape.', false, 'False. When you squeeze a rubber ball, the force changes its shape.')
+  ]},
+
+{ id:'m2', num:2, title:'Force Arrows & Balance', topic:'Effects of force, force diagrams, balanced and unbalanced forces', color:'grape',
+  links:[S[3], S[4]],
+  review:['A force can make an object <b>start or stop moving</b>, <b>speed up or slow down</b>, <b>change direction</b> or <b>change shape</b>.',
+          'We draw forces with <b>arrows</b> in a <b>force diagram</b>. The arrow shows the <b>direction</b>. The <b>longer</b> the arrow, the <b>bigger</b> the force.',
+          'Force is measured in <b>newtons (N)</b>, named after the scientist <b>Isaac Newton</b>.',
+          '<b>Balanced forces</b>: same size, opposite directions. The net (resultant) force is <b>zero</b>, so the motion does <b>not</b> change.',
+          '<b>Unbalanced forces</b>: different sizes. The motion <b>changes</b>. In tug of war, the team with the <b>bigger force</b> wins.',
+          'Springs make a <b>restoring force</b>: when you stretch or squeeze them, they try to go back to their shape.'],
+  vocab:[['arrow','flecha'],['size','tamaño'],['balanced','equilibradas'],['unbalanced','desequilibradas'],['net force','fuerza neta'],['speed up','acelerar'],['slow down','frenar']],
+  questions:[
+    multi('Choose <b>ALL</b> the things a force can do.', ['Make an object start moving','Stop a moving object','Change the direction of an object','Change the shape of an object','Change the color of an object','Make an object disappear'], [0,1,2,3], 'Forces change motion (start, stop, speed, direction) and shape. They do not change color.'),
+    mc('In a force diagram, what does the <b>length</b> of the arrow show?', ['The size (strength) of the force','The color of the object','The time the object moves','The weight of the arrow'], 'The longer the arrow, the larger the force.'),
+    mc('An arrow pointing to the <b>left</b> means…', ['the force acts to the left','the force is zero','the object is very heavy','the object is not moving'], 'The arrow shows the direction of the force.'),
+    fill('Write ONE word. The standard unit for force is the ______.', ['newton','newtons','the newton'], 'The newton (N), named after Isaac Newton.'),
+    mc('Two people pull a box with <b>10 N</b> each in <b>opposite</b> directions. What is the net force?', ['0 N','10 N','20 N','5 N'], '10 N − 10 N = 0 N. The forces are balanced, so the box does not move.'),
+    tf('When forces are balanced, the motion of the object does not change.', true, 'True. Balanced forces add up to zero.'),
+    mc('Tug of war: Team A pulls with <b>300 N</b> and Team B with <b>250 N</b>. What happens?', ['The rope moves toward Team A','The rope moves toward Team B','Nothing moves','The rope moves up'], 'Unbalanced forces: the bigger force wins.'),
+    mc('In the same tug of war (300 N vs 250 N), what is the net force?', ['50 N toward Team A','550 N toward Team B','0 N','50 N toward Team B'], '300 − 250 = 50 N, in the direction of the bigger force (Team A).'),
+    sort('Are the forces <b>balanced</b> or <b>unbalanced</b>?', ['Balanced','Unbalanced'], [['A book resting on a table',0],['A skateboard speeds up after you push the ground',1],['Tug of war where the rope doesn’t move',0],['A soccer ball slows down in the mud',1],['A lamp hanging still from the ceiling',0],['A car turns a corner',1]], 'If the motion changes (speeds up, slows down, turns), the forces are unbalanced.'),
+    mc('You kick a ball. It rolls into a muddy area, slows down and stops. Why?', ['The mud makes friction that acts opposite to the motion','Gravity disappears in the mud','The mud pushes the ball forward','The ball becomes lighter'], 'Friction from the mud is an unbalanced force that changes the motion.'),
+    tf('You need an unbalanced force to make a still object start moving.', true, 'True. To change motion, the forces must be unbalanced.'),
+    mc('You stretch a spring and let it go. It goes back to its shape. This is called…', ['a restoring force','gravity','an electrostatic force','a pulley'], 'Springs make a restoring force.')
+  ]},
+
+{ id:'m3', num:3, title:'Moves of Motion', topic:'Motion, reference points and the types of motion', color:'blue',
+  links:[S[2], S[3], S[6]],
+  review:['<b>Motion</b> is the <b>change in position</b> of an object because of a <b>force</b>.',
+          'To know if something is moving, we compare it with a <b>reference point</b> (a tree, a wall, the stars). A rocket in space with no stars around is hard to see moving!',
+          '<b>Linear</b>: in a straight line (pushing a box, a train on a straight track).',
+          '<b>Curvilinear</b>: along a curved path (a ball thrown to a friend). <b>Zigzag</b>: changes direction from side to side.',
+          '<b>Circular</b>: goes around a center (a satellite around the Earth). <b>Rotary</b>: spins on its own axis (a fan, a spinning top).',
+          '<b>Oscillatory</b>: back and forth, again and again (a swing, a pendulum).'],
+  vocab:[['motion','movimiento'],['position','posición'],['reference point','punto de referencia'],['straight line','línea recta'],['spin','girar'],['back and forth','de un lado a otro']],
+  questions:[
+    mc('What is <b>motion</b>?', ['The change in position of an object because of a force','An object that stays in the same place','The color of a moving object','The weight of an object'], 'Motion = change of position.'),
+    mc('How do we know that something is moving?', ['We compare its position with a reference point','We smell it','We weigh it','We look at its color'], 'A reference point (like a tree or the stars) helps us see the change in position.'),
+    mc('A rocket travels in space where there are no stars around. Why is it hard to know if it is moving?', ['There is no reference point to compare its position','Rockets cannot move in space','It is too dark to see colors','Space has too much friction'], 'With stars we have a reference system to perceive motion.'),
+    match('Match each <b>type of motion</b> with its meaning.', [['Linear','Moves in a straight line'],['Curvilinear','Follows a curved path'],['Circular','Goes around a center point'],['Rotary','Spins on its own axis'],['Oscillatory','Moves back and forth again and again'],['Zigzag','Changes direction sharply from side to side']], 'Six types of motion from class.'),
+    sort('Classify each example by its <b>type of motion</b>.', ['Linear','Curvilinear','Circular','Rotary','Oscillatory','Zigzag'], [['A train on a straight track',0],['A basketball thrown into the hoop',1],['A satellite going around the Earth',2],['A ceiling fan spinning',3],['A playground swing',4],['A soccer player dribbling left and right past defenders',5],['A clock pendulum',4],['A spinning top',3]], 'Straight = linear. Curve = curvilinear. Around a center = circular. Spinning in place = rotary. Back and forth = oscillatory. Side to side sharply = zigzag.'),
+    mc('A child on a swing moves…', ['in oscillatory motion','in linear motion','in zigzag motion','in rotary motion'], 'A swing goes back and forth again and again.'),
+    mc('The blades of a fan spin around their center. This is…', ['rotary motion','linear motion','oscillatory motion','zigzag motion'], 'Spinning on its own axis = rotary.'),
+    tf('An elevator going straight up shows linear motion.', true, 'True. It moves in a straight line.'),
+    mc('Which one shows <b>curvilinear</b> motion?', ['A ball thrown to a friend that goes up and down in a curve','A box pushed in a straight line','A fan spinning','A clock pendulum'], 'A thrown ball follows a curved path.'),
+    fill('Write ONE word. Motion that goes back and forth again and again is called ______ motion.', ['oscillatory','oscilatory'], 'Oscillatory, like a pendulum.'),
+    mc('The Moon travels around the Earth. Which type of motion is it?', ['Circular','Zigzag','Linear','Oscillatory'], 'It goes around a center point (the Earth).'),
+    tf('A force can change the type of motion of an object.', true, 'True. A ball rolling straight can curve or stop when a force acts on it.')
+  ]},
+
+{ id:'m4', num:4, title:'Simple Machines', topic:'The six simple machines, what they do and examples', color:'sun',
+  links:[S[5], S[6], S[8]],
+  review:['A <b>simple machine</b> is a tool that <b>makes work easier</b> because it needs <b>less force</b>. It helps us produce motion.',
+          'There are <b>six</b>: <b>lever, wheel and axle, pulley, inclined plane, wedge</b> and <b>screw</b>.',
+          '<b>Lever</b>: a bar that turns on a fixed point (the <b>fulcrum</b>). Example: a seesaw. <b>Wheel and axle</b>: a wheel joined to a rod; they turn together (a doorknob).',
+          '<b>Pulley</b>: a wheel with a rope or chain to <b>lift heavy objects</b> (a flagpole, a well).',
+          '<b>Inclined plane</b>: a <b>sloping surface</b> (a ramp) to raise heavy objects with less force.',
+          '<b>Wedge</b>: a <b>triangular</b> tool, a “portable inclined plane”, that <b>splits, lifts or holds</b> things (an axe, a knife). <b>Screw</b>: turns <b>rotary</b> motion into <b>linear</b> motion to hold things together.'],
+  vocab:[['lever','palanca'],['wheel and axle','rueda y eje'],['pulley','polea'],['inclined plane','plano inclinado'],['wedge','cuña'],['screw','tornillo'],['fulcrum','punto de apoyo']],
+  questions:[
+    mc('What is a <b>simple machine</b>?', ['A tool that makes work easier because it needs less force','A machine that always needs electricity','A machine made of hundreds of parts','A machine that burns fossil fuels'], 'Simple machines help us use less force.'),
+    fill('Write the NUMBER. How many simple machines did we learn?', ['6','six'], 'Lever, wheel and axle, pulley, inclined plane, wedge and screw.'),
+    match('Match each simple machine with its description.', [['Lever','A bar that turns on a fixed point'],['Wheel and axle','A wheel joined to a rod that turn together'],['Pulley','A wheel with a rope to lift heavy objects'],['Inclined plane','A sloping surface, like a ramp'],['Wedge','A triangular tool that splits or holds things'],['Screw','Turns rotary motion into linear motion']], 'The six simple machines.'),
+    sort('Which simple machine is it?', ['Lever','Wheel and axle','Pulley','Inclined plane','Wedge','Screw'], [['A seesaw',0],['A wheelchair ramp',3],['An axe',4],['The rope on a flagpole',2],['A doorknob',1],['A jar lid',5],['A knife',4],['A bottle opener',0]], 'Look at what each tool does: turn on a point, spin, lift with a rope, slope, split, or twist.'),
+    mc('Which simple machine helps you raise a heavy box by sliding it up a sloping surface?', ['Inclined plane','Pulley','Screw','Wedge'], 'A ramp is an inclined plane.'),
+    mc('A wedge is like a portable…', ['inclined plane','pulley','wheel','spring'], 'A wedge is two inclined planes together, and you can carry it.'),
+    mc('Which machine is used to lift a bucket of water from a well?', ['A pulley','A wedge','A screw','An inclined plane'], 'A pulley uses a wheel and a rope to lift.'),
+    tf('Simple machines create energy from nothing.', false, 'False. They don’t create energy. They make the work easier because you need less force.'),
+    mc('You need to put a heavy box into a truck. Which way needs <b>less force</b>?', ['Pushing it up a ramp','Lifting it straight up with your arms','Both need exactly the same force','Pushing it under the truck'], 'The ramp needs less force (but a longer path).'),
+    mc('The fixed point on which a lever turns is called the…', ['fulcrum','axle','wedge','thread'], 'In a seesaw, the fulcrum is the middle point.'),
+    multi('Choose <b>ALL</b> the simple machines.', ['Lever','Pulley','Screw','Wedge','Car','Bicycle'], [0,1,2,3], 'A car and a bicycle are complex machines.'),
+    tf('A simple machine allows us to use less force to produce motion.', true, 'True. That is exactly what simple machines are for.')
+  ]},
+
+{ id:'m5', num:5, title:'Machines in Motion', topic:'How simple machines are connected with the types of motion', color:'orange',
+  links:[S[5], S[6]],
+  review:['Simple machines <b>produce or change motion</b> using less force.',
+          '<b>Inclined plane</b>: the object slides up or down in a <b>straight line</b> → <b>linear</b>. <b>Wedge</b>: it is pushed forward in a straight line to split → <b>linear</b>.',
+          '<b>Wheel and axle</b>: the wheel and the axle <b>spin</b> → <b>rotary</b>. The car or wagon moves forward → <b>linear</b>.',
+          '<b>Pulley</b>: the wheel <b>spins</b> (rotary) while the rope and the load go <b>straight up or down</b> (linear).',
+          '<b>Lever</b>: the bar turns around the fulcrum. A seesaw goes up and down again and again → <b>oscillatory</b>.',
+          '<b>Screw</b>: you <b>turn</b> it (rotary) and it moves <b>straight</b> into the wood (linear). It changes one type of motion into another.'],
+  vocab:[['to turn','girar'],['to slide','deslizar'],['load','carga'],['up and down','arriba y abajo'],['to split','partir']],
+  questions:[
+    mc('A box slides up a ramp (inclined plane). What type of motion does the box have?', ['Linear','Rotary','Oscillatory','Zigzag'], 'It moves in a straight line up the ramp.'),
+    mc('When you turn a screwdriver, the screw spins and moves…', ['straight into the wood (linear motion)','in zigzag','back and forth like a swing','in a circle around the room'], 'A screw turns rotary motion into linear motion.'),
+    mc('What motion does the <b>wheel</b> of a pulley have?', ['Rotary: it spins around its axle','Zigzag','Curvilinear','It does not move'], 'The pulley wheel spins.'),
+    mc('While the pulley wheel spins, the bucket on the rope moves…', ['straight up (linear motion)','in a zigzag','in a circle','back and forth'], 'The load goes up in a straight line.'),
+    mc('A seesaw (lever) goes up and down again and again. What type of motion is it?', ['Oscillatory','Linear','Zigzag','Curvilinear'], 'Back and forth (up and down) again and again = oscillatory.'),
+    mc('An axe (wedge) is pushed into a log. How does the axe move into the wood?', ['In a straight line (linear)','Spinning (rotary)','Back and forth (oscillatory)','Around a center (circular)'], 'A wedge is pushed forward in a straight line.'),
+    match('Match each machine with the motion we see in it.', [['Inclined plane','Linear: the object slides in a straight line'],['Wheel and axle','Rotary: the wheel spins on the axle'],['Lever (seesaw)','Oscillatory: up and down again and again'],['Screw','Rotary motion that becomes linear motion'],['Pulley','The wheel spins while the load goes straight up']], 'Every simple machine is connected with a type of motion.'),
+    tf('A simple machine can change one type of motion into another.', true, 'True. The screw changes turning (rotary) into straight (linear) motion.'),
+    multi('Choose the <b>TWO</b> machines where you can see <b>rotary</b> motion.', ['Wheel and axle','Pulley','Inclined plane','Wedge'], [0,1], 'Wheels spin. The inclined plane and the wedge show linear motion.'),
+    mc('You turn a doorknob (wheel and axle). The knob and the axle…', ['spin together (rotary motion)','move in zigzag','slide in a straight line','swing back and forth'], 'In a wheel and axle, both turn together.'),
+    mc('The wheels of a wagon spin. What motion does the whole wagon make on a straight street?', ['Linear','Oscillatory','Zigzag','Circular'], 'The wheels spin (rotary), but the wagon moves forward in a straight line (linear).'),
+    mc('Why do we use simple machines to produce motion?', ['We can move things using less force','They make objects lighter','They make gravity disappear','They don’t need any force at all'], 'Simple machines make work easier.')
+  ]},
+
+{ id:'m6', num:6, title:'Complex Machines', topic:'Machines made of simple machines, and their impact on the environment', color:'pink',
+  links:[S[8], S[9], S[10]],
+  review:['A <b>complex machine</b> is made of <b>two or more simple machines</b>, sometimes hundreds. It combines several mechanisms to do <b>more complex tasks</b>.',
+          'Examples: <b>bicycle, crane, car, excavator, airplane, washing machine</b>.',
+          '<b>Scissors</b> = two levers + two wedges (the blades). <b>Wheelbarrow</b> = a lever + a wheel and axle.',
+          'Some complex machines need <b>a lot of energy</b>. Many use <b>fossil fuels</b> (oil, coal, natural gas), and that means <b>pollution</b>.',
+          'Burning fossil fuels contributes to <b>global warming</b>. We can use machines <b>responsibly</b>: walk or bike, turn machines off, choose cleaner energy.'],
+  vocab:[['complex machine','máquina compuesta'],['fuel','combustible'],['pollution','contaminación'],['global warming','calentamiento global'],['blade','cuchilla'],['wheelbarrow','carretilla']],
+  questions:[
+    mc('What is a <b>complex machine</b>?', ['Two or more simple machines working together','A machine with only one simple part','A machine that never moves','A tool that is always very small'], 'Complex machines are made of simple machines.'),
+    sort('<b>Simple</b> or <b>complex</b> machine?', ['Simple','Complex'], [['Lever',0],['Bicycle',1],['Ramp',0],['Car',1],['Crane',1],['Pulley',0],['Scissors',1],['Screw',0]], 'If it combines two or more simple machines, it is complex.'),
+    match('Match each complex machine with the simple machines inside it.', [['Scissors','Two levers and two wedges'],['Wheelbarrow','A lever and a wheel and axle'],['Bicycle','Wheels and axles, levers (pedals and brakes) and screws']], 'Look for the parts that turn, cut, lift or hold.'),
+    mc('The blades of scissors that cut the paper work as…', ['wedges','pulleys','screws','inclined planes'], 'Each blade is a wedge that splits the paper.'),
+    mc('When you lift the handles of a wheelbarrow, the handles work as a…', ['lever','pulley','screw','wedge'], 'The handles turn around the wheel like a lever.'),
+    tf('A complex machine can be made of hundreds of simple machines.', true, 'True. A car has hundreds of them.'),
+    mc('Which complex machine uses fossil fuels?', ['A car with a gasoline engine','A bicycle','Scissors','A wheelbarrow'], 'Gasoline comes from oil, a fossil fuel.'),
+    multi('Choose <b>ALL</b> the complex machines that work with <b>human energy</b> (no fuel).', ['Bicycle','Scissors','Wheelbarrow','Airplane','Excavator'], [0,1,2], 'Airplanes and excavators burn fuel.'),
+    mc('What can happen when many machines burn fossil fuels?', ['Air pollution and global warming','The air becomes cleaner','More forests grow','The Earth gets colder'], 'Burning fossil fuels pollutes and warms the planet.'),
+    mc('Which is the most eco-friendly way to go to a school that is 3 blocks away?', ['Walking or riding a bike','Going alone in a big car','Taking a taxi','Asking for a helicopter'], 'Human energy does not pollute the air.'),
+    tf('Simple machines like levers need fossil fuels to work.', false, 'False. They work with the force we apply.'),
+    mc('Which machine uses wind energy to make electricity?', ['A wind turbine','A gasoline car','A diesel bus','A coal power plant'], 'Wind turbines use renewable energy.')
+  ]},
+
+{ id:'m7', num:7, title:'Newton’s Laws', topic:'1st law (inertia), 2nd law (force and mass), 3rd law (action–reaction)', color:'ink',
+  links:[S[6], S[7]],
+  readings:[
+    {title:'Lab notebook 1: The egg trick', text:['Mariana put a glass of water on the table. She placed a piece of <b>cardboard</b> on top of the glass and an <b>egg</b> on top of the cardboard.','Then she <b>flicked</b> the cardboard very fast with her finger. The cardboard flew away, but the egg did not go with it. The egg dropped <b>straight down</b> into the water. Splash!']},
+    {title:'Lab notebook 2: Light and heavy', text:['Samuel had three objects: one of <b>3.5 g</b>, one of <b>29.2 g</b> and one of <b>112.4 g</b>. He pushed each one with the <b>same</b> small flick of a ruler.','The 3.5 g object moved the farthest. The 112.4 g object barely moved. Samuel wrote: “Heavier objects need more force to move.”']}
+  ],
+  review:['<b>Isaac Newton</b> explained motion with <b>three laws</b>.',
+          '<b>1st law – Inertia</b>: objects keep doing what they are doing (staying still or moving) <b>unless a force acts on them</b>. Example: the egg trick; your body moves forward when the bus stops suddenly.',
+          '<b>2nd law – Force</b>: the <b>greater the mass</b> of an object, the <b>more force</b> it takes to accelerate it. More mass needs more force to produce motion.',
+          '<b>3rd law – Action–reaction</b>: <b>for every action, there is an equal and opposite reaction</b>. Example: a rocket pushes gas down and goes up; a balloon flies when air rushes out.'],
+  vocab:[['law','ley'],['inertia','inercia'],['mass','masa'],['to accelerate','acelerar'],['action','acción'],['reaction','reacción']],
+  questions:[
+    match('Match each <b>Newton’s law</b> with what it says.', [['1st law (inertia)','An object stays still or keeps moving unless a force acts on it'],['2nd law (force)','The more mass an object has, the more force you need to accelerate it'],['3rd law (action–reaction)','For every action there is an equal and opposite reaction']], 'Inertia, force and mass, action–reaction.'),
+    mc('Why did the egg <b>not</b> fly away with the cardboard?', ['Because of inertia: the egg was still, and the flick only pushed the cardboard','Because the egg is magnetic','Because the water pulled the egg with a magnet','Because eggs can never move'], 'The force acted on the cardboard, not on the egg. The egg tended to stay still.', R(0)),
+    mc('Which force made the egg fall <b>down</b> into the glass?', ['Gravity','Magnetic force','Friction','Electrostatic force'], 'Gravity pulled the egg straight down.', R(0)),
+    mc('Which law does the egg trick show?', ['The 1st law: inertia','The 2nd law: force and mass','The 3rd law: action–reaction','None of them'], 'Objects keep doing what they are doing unless a force acts on them.', R(0)),
+    mc('Which object moved the <b>farthest</b>?', ['The 3.5 g object','The 29.2 g object','The 112.4 g object','They all moved the same'], 'The lightest object moved the farthest.', R(1)),
+    mc('To move the 112.4 g object as far as the 3.5 g one, Samuel needs…', ['more force','less force','the same force','no force at all'], 'More mass needs more force.', R(1)),
+    mc('Which law does Samuel’s experiment show?', ['The 2nd law: force and mass','The 1st law: inertia','The 3rd law: action–reaction','The law of gravity only'], 'The greater the mass, the more force it takes to accelerate the object.', R(1)),
+    sort('Which law is it? Classify each example.', ['1st · Inertia','2nd · Force','3rd · Action–reaction'], [['Your body moves forward when the bus stops suddenly',0],['A rocket pushes gas down and goes up',2],['It is harder to push a full shopping cart than an empty one',1],['A ball stays still on the grass until someone kicks it',0],['When you jump off a small boat, the boat moves backward',2],['A heavy truck needs a bigger engine than a small car to speed up',1],['A balloon flies around when the air rushes out',2]], 'Staying still or moving = 1st. Mass and force = 2nd. A push back in the opposite direction = 3rd.'),
+    mc('Why do we wear seatbelts in a car?', ['Because of inertia: our body keeps moving forward if the car stops suddenly','Because seatbelts make the car faster','Because of magnetic force','Because seatbelts make us lighter'], 'Inertia: objects (and people) keep moving until a force stops them.'),
+    tf('When you push a wall, the wall pushes back on you with an equal force.', true, 'True. That is the 3rd law: action and reaction.'),
+    fill('Write ONE word. Newton’s first law is also called the law of ______.', ['inertia'], 'The law of inertia.'),
+    mc('A swimmer pushes the water backward. The swimmer moves…', ['forward','backward','down to the bottom','nowhere'], 'Action: push water back. Reaction: the swimmer goes forward.'),
+    mc('Who described the three laws of motion?', ['Isaac Newton','Albert Einstein','Thomas Edison','Marie Curie'], 'Isaac Newton. The unit of force (N) has his name too.')
+  ]},
+
+{ id:'m8', num:8, title:'Power for the Planet', topic:'Energy: renewable and non-renewable sources, fossil fuels and responsible use', color:'leaf',
+  links:[S[8], S[9], S[10], S[11]],
+  review:['<b>Energy</b> is the ability to <b>make things happen or change</b>. We need it to make <b>light, sound, heat</b>, to <b>move machines</b> and to use <b>electronic devices</b>.',
+          '<b>Renewable energy</b> comes from resources that <b>nature will replace</b>: the <b>sun</b> (solar), the <b>wind</b> and <b>water</b>.',
+          '<b>Non-renewable energy</b> comes from natural resources that <b>cannot be replaced</b> after they are used: <b>coal, oil</b> and <b>natural gas</b>.',
+          'A <b>fossil fuel</b> is a natural energy source made from the <b>remains of ancient organisms</b> (plants and animals from millions of years ago).',
+          'Burning fossil fuels causes <b>air pollution</b> and contributes to <b>global warming</b> and climate change.',
+          'Responsible use: <b>turn off</b> lights and devices, walk or bike, use <b>cleaner energy</b>. Simple choices today build a cleaner tomorrow.'],
+  vocab:[['energy','energía'],['renewable','renovable'],['non-renewable','no renovable'],['fossil fuel','combustible fósil'],['coal','carbón'],['oil','petróleo'],['wind','viento']],
+  questions:[
+    mc('What is <b>energy</b>?', ['The ability to make things happen or change','A type of simple machine','A kind of rock','The weight of an object'], 'Energy makes things happen or change.'),
+    multi('Choose <b>ALL</b> the things we need energy for.', ['To produce light','To produce sound','To move machines','To produce heat','To make a rock invisible'], [0,1,2,3], 'Light, sound, movement, heat and electronic devices all need energy.'),
+    mc('<b>Renewable</b> energy is energy made from resources that…', ['nature will replace','can never be replaced','only exist in factories','come from plastic'], 'Renewable = nature replaces it.'),
+    mc('<b>Non-renewable</b> energy comes from natural resources that…', ['cannot be replaced after they are used','come back every day','come from the wind','are made by the sun every morning'], 'When we use them up, they are gone for a very long time.'),
+    sort('<b>Renewable</b> or <b>non-renewable</b>?', ['Renewable','Non-renewable'], [['Solar energy',0],['Coal',1],['Wind',0],['Oil',1],['Water (rivers and dams)',0],['Natural gas',1],['Gasoline (made from oil)',1]], 'Sun, wind and water are replaced by nature. Coal, oil and gas are fossil fuels.'),
+    mc('What is a <b>fossil fuel</b>?', ['An energy source made from the remains of ancient organisms','Energy that comes directly from the sun','A type of wind','A simple machine'], 'Fossil fuels formed from plants and animals that lived millions of years ago.'),
+    multi('Choose the <b>THREE</b> fossil fuels.', ['Oil','Coal','Natural gas','Wind','Sunlight','Water'], [0,1,2], 'Oil, coal and natural gas.'),
+    mc('Burning fossil fuels contributes to…', ['global warming','more clean air','colder winters everywhere','more ice at the poles'], 'Fossil fuels release gases that warm the planet.'),
+    tf('Wind turbines make electricity from a renewable source.', true, 'True. The wind does not run out.'),
+    tf('Coal grows back quickly after we use it.', false, 'False. Coal is non-renewable. It took millions of years to form.'),
+    sort('Is it a <b>responsible</b> use of energy?', ['Responsible','Not responsible'], [['Turning off the lights when you leave a room',0],['Leaving the TV on all night',1],['Riding a bike to school',0],['Using solar panels',0],['Leaving the fridge door open',1],['Using a car for a two-block trip',1]], 'Saving energy and using clean energy help the planet.'),
+    fill('Write ONE word. Energy that comes from the sun is called ______ energy.', ['solar'], 'Solar energy is renewable.'),
+    mc('Why are renewable sources better for the planet?', ['They make less pollution and they don’t run out','They are always free and need no machines','They make the Earth hotter','They only work at night'], 'Clean and they come back.')
+  ]},
+
+{ id:'b1', num:9, bonus:true, title:'Think Like a Scientist', topic:'Scientific method and research skills (Session 1)', color:'sun',
+  links:[S[1], S[11]],
+  review:['A scientist <b>explores, asks questions, experiments, investigates, collects data</b> and <b>communicates results</b>.',
+          'Steps of the <b>scientific method</b>: <b>observe → ask a question → make a hypothesis → plan and investigate → analyze results → share findings</b>.',
+          'A <b>hypothesis</b> is a prediction you can test: “I think ___ will happen because ___.”',
+          '<b>Observing</b> = using your senses to collect information. <b>Inferring</b> = using what you observe to reach an idea.'],
+  vocab:[['hypothesis','hipótesis'],['evidence','evidencia'],['findings','hallazgos'],['to infer','inferir']],
+  questions:[
+    mc('Martín looks carefully at a plant and notices that some leaves are yellow. What is he doing?', ['Observing','Asking a question','Making a hypothesis','Sharing findings'], 'He is looking carefully and collecting information.'),
+    mc('Samuel wonders: “Why are some of the leaves yellow?” What step is this?', ['Asking a question','Investigating','Analyzing results','Observing'], 'He wants to understand something he observed.'),
+    mc('Emma says: “I think the plant needs more sunlight.” What step is this?', ['Making a hypothesis','Observing','Drawing a conclusion','Sharing findings'], 'It is a prediction she can test.'),
+    mc('Samuel puts one plant near a window and another in a dark place. What is he doing?', ['Investigating (testing the hypothesis)','Sharing findings','Drawing a conclusion','Asking a question'], 'He is testing the hypothesis.'),
+    mc('Mariana says: “The plant with sunlight grew more.” What step is this?', ['Drawing a conclusion','Observing','Asking a question','Making a hypothesis'], 'She explains the result with evidence.'),
+    match('Put the steps of the scientific method in order.', [['Step 1','Observe'],['Step 2','Ask a question'],['Step 3','Make a hypothesis'],['Step 4','Plan and investigate'],['Step 5','Analyze results'],['Step 6','Share findings']], 'Observe, question, hypothesis, investigate, analyze, share.', true),
+    mc('“The street is wet, so I think it rained.” This is…', ['inferring','observing only','making a machine','a law of motion'], 'You use what you observe (wet street) to reach an idea (it rained).'),
+    tf('Scientists share (communicate) their results with others.', true, 'True. Sharing findings is the last step.'),
+    mc('In the Ecolincolnians STEM project, students designed…', ['a machine that helps solve an environmental problem','a new video game','a song about machines','a car that uses more gasoline'], 'An eco-friendly machine using what we learned about forces, motion and energy.')
+  ]}
+];
+
+const CORE = MISSIONS.filter(m => !m.bonus);
+const BONUS = MISSIONS.filter(m => m.bonus);
+const MAX_STARS = CORE.length * 3;
+const RANKS = [
+  {min:0,  name:'Curious Rookie'},
+  {min:6,  name:'Force Finder'},
+  {min:12, name:'Motion Mechanic'},
+  {min:18, name:'Machine Master'},
+  {min:24, name:'Newton Legend'}
+];
+const TYPE_LABEL = {mc:'Multiple choice', tf:'True or false', multi:'Choose all that apply', fill:'Write', match:'Match', sort:'Classify', open:'Write'};
+
+/* =================== HELPERS =================== */
+const KEY = 'jero-science-quest-v1';
+const blank = () => ({answers:{}, checked:{}, best:{}, tries:{}, current:'m1', rayo:{best:0, plays:0}});
+let state = blank();
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === 'object') state = Object.assign(state, s); } catch(e) {}
+if (!state.rayo) state.rayo = {best:0, plays:0};
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const strip = s => String(s).replace(/<[^>]+>/g, '');
+const byId = id => MISSIONS.find(m => m.id === id);
+const answersOf = m => state.answers[m.id] || (state.answers[m.id] = {});
+const LETTERS = ['A','B','C','D','E','F'];
+function hash(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed){ return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function order(n, key){ const r = rng(hash(key)); const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const normFill = (q, s) => { const t = String(s || '').trim().replace(/[.!]+$/, '').replace(/\s+/g, ' '); return q.cs ? t : t.toLowerCase(); };
+const fillOk = (q, v) => q.a.includes(normFill(q, v));
+const sameSet = (a, b) => a.length === b.length && a.every(x => b.includes(x));
+
+const ptsOf = q => q.t === 'match' ? q.pairs.length : q.t === 'sort' ? q.items.length : q.t === 'open' ? q.ideas.length : 1;
+function earned(q, v){
+  if (v === undefined || v === null) return 0;
+  if (q.t === 'mc') return v === 0 ? 1 : 0;
+  if (q.t === 'tf') return v === q.a ? 1 : 0;
+  if (q.t === 'multi') return Array.isArray(v) && sameSet(v, q.a) ? 1 : 0;
+  if (q.t === 'fill') return fillOk(q, v) ? 1 : 0;
+  if (q.t === 'match') return q.pairs.reduce((n, p, k) => n + (v[k] !== undefined && v[k] !== '' && Number(v[k]) === k ? 1 : 0), 0);
+  if (q.t === 'sort') return q.items.reduce((n, it, k) => n + (v[k] === it[1] ? 1 : 0), 0);
+  if (q.t === 'open') return v.done ? q.ideas.reduce((n, _, k) => n + (v.ticks && v.ticks[k] ? 1 : 0), 0) : 0;
+  return 0;
+}
+function answered(q, v){
+  if (v === undefined || v === null) return false;
+  if (q.t === 'mc') return typeof v === 'number';
+  if (q.t === 'tf') return typeof v === 'boolean';
+  if (q.t === 'multi') return Array.isArray(v) && v.length > 0;
+  if (q.t === 'fill') return String(v).trim() !== '';
+  if (q.t === 'match') return q.pairs.every((_, k) => v[k] !== undefined && v[k] !== '');
+  if (q.t === 'sort') return q.items.every((_, k) => typeof v[k] === 'number');
+  if (q.t === 'open') return !!v.done;
+  return false;
+}
+const maxOf = m => m.questions.reduce((n, q) => n + ptsOf(q), 0);
+const scoreOf = m => m.questions.reduce((n, q, i) => n + earned(q, answersOf(m)[i]), 0);
+const answeredCount = m => m.questions.filter((q, i) => answered(q, answersOf(m)[i])).length;
+const starsFor = m => { const p = scoreOf(m) / maxOf(m); return p >= .9 ? 3 : p >= .75 ? 2 : p >= .6 ? 1 : 0; };
+const pctOf = m => Math.round(scoreOf(m) / maxOf(m) * 100);
+const starStr = (n, total = 3) => '★'.repeat(n) + '<span class="off">' + '★'.repeat(total - n) + '</span>';
+const totalStars = () => CORE.filter(m => state.checked[m.id]).reduce((n, m) => n + starsFor(m), 0);
+const rankFor = st => RANKS.filter(r => st >= r.min).pop();
+const TOTAL_PTS = CORE.reduce((n, m) => n + maxOf(m), 0);
+const MIN_WORDS = 10;
+const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>';
+const linkIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+
+/* =================== RENDER: shell =================== */
+function renderPod(){
+  const done = CORE.filter(m => state.checked[m.id]);
+  const pts = done.reduce((n, m) => n + scoreOf(m), 0);
+  const st = totalStars();
+  document.getElementById('podStars').textContent = `★ ${st}/${MAX_STARS}`;
+  document.getElementById('podPts').textContent = `${pts}/${TOTAL_PTS} points`;
+  document.getElementById('heroRank').textContent = `Your rank: ${rankFor(st).name}`;
+}
+function card(m){
+  const checked = state.checked[m.id], ac = answeredCount(m), n = m.questions.length, st = checked ? starsFor(m) : 0;
+  const status = checked ? `<b>${scoreOf(m)}/${maxOf(m)}</b> points` : ac ? `${ac}/${n} answered` : 'Not started';
+  const pct = checked ? scoreOf(m) / maxOf(m) * 100 : ac / n * 100;
+  return `<button class="mcard t-${m.color} ${m.bonus ? 'bonus' : ''}" data-go="${m.id}" aria-current="${state.current === m.id}">
+    <span class="top"><span class="num">${m.num}</span><span class="mini-stars" aria-label="${st} stars">${'★'.repeat(st) + '☆'.repeat(3 - st)}</span></span>
+    <span class="t">${esc(m.title)}</span>
+    <span class="topic">${esc(m.topic)}</span>
+    <span class="bar"><span style="width:${pct}%"></span></span>
+    <span class="status">${status}</span>
+    ${checked && st > 0 ? '<span class="sello" aria-hidden="true">STAMPED</span>' : ''}
+  </button>`;
+}
+function renderNav(){
+  document.getElementById('nav').innerHTML = CORE.map(card).join('')
+    + `<div class="extra">
+      <button class="xbtn rayo" data-go="rayo" aria-current="${state.current === 'rayo'}"><span>⚡ Lightning Round</span><span>Best: ${state.rayo.best} points</span></button>
+      <button class="xbtn res" data-go="results" aria-current="${state.current === 'results'}"><span>Results and badges</span><span>${CORE.filter(m => state.checked[m.id]).length}/${CORE.length} missions</span></button>
+    </div>
+    <div class="nav-head"><b>Extra review</b><span>Session 1 topics: the scientific method. They don’t count for your rank.</span></div>`
+    + BONUS.map(card).join('');
+}
+
+/* =================== RENDER: questions =================== */
+function renderQuestion(m, q, i, checked){
+  const v = answersOf(m)[i];
+  const name = `${m.id}-q${i}`;
+  let inner = '', liCls = '';
+  const pts = ptsOf(q), got = earned(q, v);
+  if (checked && q.t !== 'open') liCls = got === pts ? 'ok' : got === 0 ? 'bad' : 'part';
+
+  if (q.t === 'mc' || q.t === 'tf'){
+    const isTf = q.t === 'tf';
+    const ids = isTf ? [true, false] : q.fx ? [...q.o.keys()] : order(q.o.length, name);
+    const opts = ids.map((val, pos) => {
+      const label = isTf ? (val ? 'True' : 'False') : q.o[val];
+      const isAns = isTf ? val === q.a : val === 0;
+      let cls = '', flag = '';
+      if (checked){
+        if (isAns){ cls = 'right'; flag = v === val ? 'Correct!' : 'Right answer'; }
+        else if (v === val){ cls = 'wrong'; flag = 'Your answer'; }
+      }
+      const sval = isTf ? (val ? 't' : 'f') : String(val);
+      return `<label class="opt ${cls}" for="${name}-o${pos}">
+        <input type="radio" name="${name}" id="${name}-o${pos}" value="${sval}" data-m="${m.id}" data-i="${i}" data-kind="${q.t}" ${v === val ? 'checked' : ''} ${checked ? 'disabled' : ''}>
+        <span class="letter">${isTf ? (val ? 'T' : 'F') : LETTERS[pos]}</span><span class="txt">${esc(label)}</span>${flag ? `<span class="flag">${flag}</span>` : ''}
+      </label>`;
+    }).join('');
+    inner = `<div class="opts ${isTf ? 'tf' : ''}">${opts}</div>`;
+  }
+  else if (q.t === 'multi'){
+    const sel = Array.isArray(v) ? v : [];
+    const ids = order(q.o.length, name);
+    inner = `<div class="opts">` + ids.map((val, pos) => {
+      const isAns = q.a.includes(val), picked = sel.includes(val);
+      let cls = '', flag = '';
+      if (checked){
+        if (isAns && picked){ cls = 'right'; flag = 'Correct!'; }
+        else if (!isAns && picked){ cls = 'wrong'; flag = 'Not this one'; }
+        else if (isAns){ cls = 'missed'; flag = 'You missed it'; }
+      }
+      return `<label class="opt ${cls}" for="${name}-o${pos}">
+        <input type="checkbox" id="${name}-o${pos}" value="${val}" data-m="${m.id}" data-i="${i}" data-kind="multi" ${picked ? 'checked' : ''} ${checked ? 'disabled' : ''}>
+        <span class="box">✓</span><span class="txt">${esc(q.o[val])}</span>${flag ? `<span class="flag">${flag}</span>` : ''}
+      </label>`;
+    }).join('') + `</div>` + (checked ? '' : `<span class="hint" id="${name}-cnt">${sel.length} selected</span>`);
+  }
+  else if (q.t === 'fill'){
+    const ok = checked && fillOk(q, v);
+    inner = `<div class="fillrow">
+      <input class="fillin ${checked ? (ok ? 'right' : 'wrong') : ''}" id="${name}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Your answer"
+        aria-label="Answer to question ${i + 1}" value="${esc(v ?? '')}" data-m="${m.id}" data-i="${i}" data-kind="fill" ${checked ? 'disabled' : ''}>
+      ${checked ? '' : '<span class="hint">Read the instruction again before you write.</span>'}
+    </div>`;
+  }
+  else if (q.t === 'match'){
+    const vv = v || {};
+    const lefts = order(q.pairs.length, name + 'L');
+    const rights = q.ord ? [...q.pairs.keys()] : order(q.pairs.length, name + 'R');
+    inner = `<div class="mlist">` + lefts.map(k => {
+      const sel = vv[k];
+      const ok = checked && sel !== undefined && sel !== '' && Number(sel) === k;
+      const optsHtml = `<option value="">Choose…</option>` + rights.map(r => `<option value="${r}" ${sel !== undefined && sel !== '' && Number(sel) === r ? 'selected' : ''}>${esc(q.pairs[r][1])}</option>`).join('');
+      return `<div class="mrow ${checked ? (ok ? 'right' : 'wrong') : ''}">
+        <span class="left">${esc(q.pairs[k][0])}</span>
+        <select id="${name}-p${k}" aria-label="${esc(q.pairs[k][0])}" data-m="${m.id}" data-i="${i}" data-k="${k}" ${checked ? 'disabled' : ''}>${optsHtml}</select>
+        ${checked && !ok ? `<span class="fix">Right answer: ${esc(q.pairs[k][1])}</span>` : ''}
+      </div>`;
+    }).join('') + `</div>`;
+  }
+  else if (q.t === 'sort'){
+    const vv = v || {};
+    const items = order(q.items.length, name + 'S');
+    inner = `<div class="slist">` + items.map(k => {
+      const it = q.items[k], sel = vv[k];
+      const ok = checked && sel === it[1];
+      const chips = q.cats.map((c, ci) => `<label class="chip" for="${name}-s${k}-${ci}">
+          <input type="radio" name="${name}-s${k}" id="${name}-s${k}-${ci}" value="${ci}" data-m="${m.id}" data-i="${i}" data-k="${k}" data-kind="sort" ${sel === ci ? 'checked' : ''} ${checked ? 'disabled' : ''}>
+          <span>${esc(c)}</span></label>`).join('');
+      return `<div class="srow ${checked ? (ok ? 'right' : 'wrong') : ''}">
+        <span class="item">${esc(it[0])}</span>
+        <div class="chips" role="group" aria-label="${esc(it[0])}">${chips}</div>
+        ${checked && !ok ? `<span class="fix">Right answer: ${esc(q.cats[it[1]])}</span>` : ''}
+      </div>`;
+    }).join('') + `</div>`;
+  }
+  else if (q.t === 'open'){
+    const vv = v || {};
+    const text = vv.text || '';
+    const done = !!vv.done;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const ideas = done ? `<div class="ideas">
+        <span class="ih">Key ideas: tick the ones you wrote <small>Check them with Mom or Dad. Each idea is 1 point.</small></span>
+        ${q.ideas.map((idea, k) => `<label class="idea" for="${name}-i${k}"><input type="checkbox" id="${name}-i${k}" data-m="${m.id}" data-i="${i}" data-k="${k}" data-kind="idea" ${vv.ticks && vv.ticks[k] ? 'checked' : ''}><span>${esc(idea)}</span></label>`).join('')}
+        <span class="verdict ${got === pts ? 'ok' : got ? 'part' : 'bad'}" id="${name}-got">${got}/${pts} ideas</span>
+      </div>` : '';
+    inner = `<div class="open">
+      <textarea id="${name}-t" data-m="${m.id}" data-i="${i}" data-kind="open" aria-label="Your answer to question ${i + 1}" placeholder="Write your answer here…" ${done ? 'readonly' : ''}>${esc(text)}</textarea>
+      <div class="orow">
+        ${done ? '' : `<button class="btn small leaf" data-open="${i}">Check my answer</button>`}
+        <span class="wc" id="${name}-wc">${words} ${words === 1 ? 'word' : 'words'}</span>
+        <span class="omsg" id="${name}-msg" aria-live="polite"></span>
+      </div>${ideas}</div>`;
+    if (done) liCls = got === pts ? 'ok' : got === 0 ? 'bad' : 'part';
+  }
+
+  let how = '';
+  if (checked && q.t !== 'open'){
+    const verdict = got === pts ? '<span class="verdict ok">Correct!</span>' : pts > 1 ? `<span class="verdict ${got ? 'part' : 'bad'}">${got}/${pts} right.</span>` : '<span class="verdict bad">Not this time.</span>';
+    how = `<div class="how"><span class="lbl">Why</span><span>${verdict} ${q.x}</span></div>`;
+  }
+  const typeTag = `<span class="qtype">${TYPE_LABEL[q.t]}</span>`;
+  const ptsTag = pts > 1 ? ` <span class="pts-tag">· ${pts} points</span>` : '';
+  const source = q.t === 'open' ? ` <span class="pts-tag">· ${esc(q.x)}</span>` : '';
+  return `<li class="${liCls}" id="li-${name}"><fieldset class="q ${checked ? 'locked' : ''}">
+    <legend><span class="qn">${i + 1}</span><span>${q.q} ${typeTag}${ptsTag}${source}</span></legend>${inner}${how}</fieldset></li>`;
+}
+function readingHtml(m, r){
+  const rd = m.readings[r];
+  return `<li class="reading" id="read-${m.id}-${r}"><span class="rk">Text ${r + 1} of ${m.readings.length}</span><h4>${esc(rd.title)}</h4>
+    <div class="rtext">${rd.text.map(p => `<p>${p}</p>`).join('')}</div>
+    <span class="rtip">Read it twice. Then answer the questions below. You can scroll back to the text any time.</span></li>`;
+}
+
+function bannerHtml(m){
+  const sc = scoreOf(m), mx = maxOf(m), st = starsFor(m);
+  const msgs = ['Keep practicing, Jero! Read the “Why” notes and try again.','Good job! You’re getting there.','Great work, Jero! Almost perfect.','Amazing! 3 stars, you earned the badge.'];
+  const list = m.bonus ? BONUS : CORE;
+  const idx = list.indexOf(m), nextM = list[idx + 1];
+  const tries = state.tries[m.id] || 0, best = state.best[m.id];
+  return `<div class="banner pop" id="banner">
+      <span class="big">${sc}<small>/${mx}</small></span>
+      <div><span class="bstars">${starStr(st)}</span><p>${msgs[st]}</p>
+        <p style="opacity:.75;font-size:.88rem">${pctOf(m)}% of the points · Try ${tries}${best !== undefined && tries > 1 ? ` · Best score: ${best}/${mx}` : ''}</p></div>
+      <div class="acts">
+        <button class="btn ghost" id="retryBtn">Try again</button>
+        <button class="btn" data-go="${nextM ? nextM.id : (m.bonus ? 'results' : 'rayo')}">${nextM ? 'Next mission →' : (m.bonus ? 'See my results →' : '⚡ Lightning Round →')}</button>
+      </div>
+    </div>`;
+}
+
+function renderMission(m){
+  const checked = !!state.checked[m.id];
+  const n = m.questions.length, ac = answeredCount(m);
+  const footer = checked ? bannerHtml(m)
+    : m.open ? `<div class="check-row"><span class="check-msg" style="color:var(--muted);font-weight:400">Check each answer with its own button. When all ${n} are checked, you get the badge.</span></div>`
+    : `<div class="check-row"><button class="btn leaf" id="checkBtn">Check my answers</button><span class="check-msg" id="checkMsg" aria-live="polite"></span></div>`;
+  const links = (m.links || []).length ? `<div class="links">${m.links.map(l => `<a href="${esc(l.u)}" target="_blank" rel="noopener">${l.t.startsWith('Podcast') ? playIcon : linkIcon}${esc(l.t)}</a>`).join('')}</div>` : '';
+  const seen = new Set();
+  const items = m.questions.map((q, i) => {
+    let pre = '';
+    if (q.r !== undefined && !seen.has(q.r)){ seen.add(q.r); pre = readingHtml(m, q.r); }
+    return pre + renderQuestion(m, q, i, checked);
+  }).join('');
+  return `<div class="m-head">
+      <div class="m-badge" aria-hidden="true">${m.num}</div>
+      <div><p class="kicker">${m.bonus ? 'Extra review' : `Mission ${m.num} of ${CORE.length}`} · ${maxOf(m)} points</p>
+      <h2>${esc(m.title)}</h2>
+      <p class="sub">${esc(m.topic)}</p></div>
+    </div>
+    <details class="tip" ${checked ? '' : 'open'}><summary>${m.open ? 'How this challenge works' : m.readings ? 'How to read like a detective' : 'Quick review before you start'}</summary>
+      <ul>${m.review.map(r => `<li>${r}</li>`).join('')}</ul>
+      <div class="vocab"><span class="lbl">Key words</span>${m.vocab.map(w => `<span class="w">${esc(w[0])} <i>= ${esc(w[1])}</i></span>`).join('')}</div>
+      ${links}
+    </details>
+    <div class="qs-title"><h3>Questions</h3>
+      <div class="prog"><div class="track"><div class="fill" id="progFill" style="width:${(checked ? scoreOf(m) / maxOf(m) : ac / n) * 100}%"></div></div>
+      <small id="ansCount">${checked ? `${scoreOf(m)}/${maxOf(m)} points` : `${ac}/${n} answered`}</small></div></div>
+    <ol class="qs">${items}</ol>
+    <div id="footer">${footer}</div>`;
+}
+
+/* =================== RENDER: lightning round =================== */
+const RAYO_N = 12, RAYO_T = 20;
+let RY = null, rTimer = null;
+function rayoStart(){
+  const pool = [];
+  CORE.forEach(m => m.questions.forEach(q => { if ((q.t === 'mc' && !q.fx) || q.t === 'tf') if (q.r === undefined) pool.push({m, q}); }));
+  for (let i = pool.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  RY = {qs: pool.slice(0, RAYO_N).map(p => {
+        const opts = p.q.t === 'tf' ? [{t:'True', ok:p.q.a === true}, {t:'False', ok:p.q.a === false}]
+          : p.q.o.map((t, k) => ({t, ok:k === 0})).sort(() => Math.random() - .5);
+        return {m:p.m, q:p.q, opts};
+      }), i:0, score:0, streak:0, bestStreak:0, right:0, phase:'q', picked:null, left:RAYO_T, gained:0};
+  rayoTick();
+  renderStage();
+}
+function rayoTick(){
+  clearInterval(rTimer);
+  const t0 = performance.now();
+  RY.left = RAYO_T;
+  rTimer = setInterval(() => {
+    if (!RY || RY.phase !== 'q'){ clearInterval(rTimer); return; }
+    RY.left = Math.max(0, RAYO_T - (performance.now() - t0) / 1000);
+    const bar = document.getElementById('rbar'), sec = document.getElementById('rsec');
+    if (bar){ bar.style.width = (RY.left / RAYO_T * 100) + '%'; bar.classList.toggle('low', RY.left < 6); }
+    if (sec) sec.textContent = Math.ceil(RY.left) + ' s';
+    if (RY.left <= 0) rayoAnswer(-1);
+  }, 100);
+}
+function rayoAnswer(k){
+  if (!RY || RY.phase !== 'q') return;
+  clearInterval(rTimer);
+  const cur = RY.qs[RY.i];
+  const ok = k >= 0 && cur.opts[k].ok;
+  RY.picked = k; RY.phase = 'fb';
+  if (ok){
+    RY.streak++; RY.right++; RY.bestStreak = Math.max(RY.bestStreak, RY.streak);
+    RY.gained = 100 + Math.round(RY.left) * 5 + (RY.streak >= 3 ? 50 : 0);
+    RY.score += RY.gained;
+  } else { RY.streak = 0; RY.gained = 0; }
+  renderStage();
+}
+function rayoNext(){
+  RY.i++;
+  if (RY.i >= RY.qs.length){
+    RY.phase = 'end';
+    state.rayo.plays = (state.rayo.plays || 0) + 1;
+    RY.record = RY.score > (state.rayo.best || 0);
+    if (RY.record) state.rayo.best = RY.score;
+    save(); renderNav(); renderStage();
+    if (RY.record && RY.score > 0) confetti(180);
+    return;
+  }
+  RY.phase = 'q'; RY.picked = null; rayoTick(); renderStage();
+}
+function renderRayo(){
+  const head = `<div class="m-head t-sun"><div class="m-badge" aria-hidden="true">⚡</div>
+      <div><p class="kicker">Bonus · Doesn’t change your stars</p><h2>Lightning Round</h2><p class="sub">${RAYO_N} random questions from missions 1 to 8. ${RAYO_T} seconds each.</p></div></div>`;
+  if (!RY) return head + `<div class="rayo-card rayo-intro">
+      <p class="display" style="font-weight:600;font-size:1.2rem">How fast are you, Jero?</p>
+      <ul><li>Every right answer is worth <b>100 points</b>.</li><li>You get <b>5 extra points</b> for every second left.</li><li>With <b>3 or more in a row</b> you get a 50-point streak bonus.</li><li>If time runs out, the question counts as wrong.</li><li>Keyboard: press A, B, C, D (or T and F), then Enter.</li></ul>
+      <p>Your best score: <b style="color:var(--sun)">${state.rayo.best} points</b>${state.rayo.plays ? ` · Played ${state.rayo.plays} ${state.rayo.plays === 1 ? 'time' : 'times'}` : ''}</p>
+      <div><button class="btn" id="rayoGo">Start!</button></div></div>`;
+  if (RY.phase === 'end'){
+    const msg = RY.right >= 11 ? 'You are lightning fast!' : RY.right >= 8 ? 'Fast and smart!' : RY.right >= 5 ? 'Good try! Review the missions and come back.' : 'Review the missions and try again.';
+    return head + `<div class="rayo-card pop">
+      <span class="rbig">${RY.score}</span>
+      <p class="display" style="font-weight:600;font-size:1.25rem">${RY.record && RY.score > 0 ? 'New record! ' : ''}${msg}</p>
+      <p>You got <b>${RY.right} of ${RAYO_N}</b> right (${Math.round(RY.right / RAYO_N * 100)}%). Best streak: ${RY.bestStreak}. Best score: ${state.rayo.best} points.</p>
+      <div class="acts" style="display:flex;flex-wrap:wrap;gap:10px"><button class="btn" id="rayoGo">Play again</button><button class="btn ghost" data-go="results">See results</button></div>
+    </div>`;
+  }
+  const cur = RY.qs[RY.i];
+  const fb = RY.phase === 'fb';
+  const opts = cur.opts.map((o, k) => {
+    let cls = '';
+    if (fb){ if (o.ok) cls = 'right'; else if (RY.picked === k) cls = 'wrong'; }
+    return `<button class="ropt ${cls}" data-ropt="${k}" ${fb ? 'disabled' : ''}><span class="letter">${cur.q.t === 'tf' ? (k === 0 ? 'T' : 'F') : LETTERS[k]}</span><span>${esc(o.t)}</span></button>`;
+  }).join('');
+  const feed = fb ? (RY.picked >= 0 && cur.opts[RY.picked].ok ? `<p class="rfeed ok">Correct! +${RY.gained} points${RY.streak >= 3 ? ` · ${RY.streak} in a row` : ''}</p>` : `<p class="rfeed bad">${RY.picked < 0 ? 'Time’s up!' : 'Not this time.'} ${strip(cur.q.x)}</p>`) : '<p class="rfeed"></p>';
+  return head + `<div class="rayo-card">
+      <div class="rayo-top"><span>Question ${RY.i + 1} of ${RAYO_N}</span><span class="streak">${RY.streak >= 2 ? 'Streak ×' + RY.streak : ''}</span><span>${RY.score} points</span></div>
+      <div class="rtimer" aria-hidden="true"><span id="rbar" style="width:${fb ? RY.left / RAYO_T * 100 : 100}%"></span></div>
+      <p class="rayo-q"><span style="font-size:.8rem;opacity:.75;display:block;font-weight:500">Mission ${cur.m.num} · ${esc(cur.m.title)} · <span id="rsec">${Math.ceil(RY.left)} s</span></span>${cur.q.q}</p>
+      <div class="ropts">${opts}</div>
+      ${feed}
+      ${fb ? `<div><button class="btn" id="rayoNext">${RY.i + 1 < RAYO_N ? 'Next →' : 'See my score'}</button></div>` : ''}
+    </div>`;
+}
+
+/* =================== RENDER: results =================== */
+function resRow(m){
+  const c = state.checked[m.id], sc = scoreOf(m), mx = maxOf(m);
+  return `<tr class="t-${m.color}"><td><span class="dot"></span>${m.num}. ${esc(m.title)}</td><td>${esc(m.topic)}</td>
+    <td class="n">${c ? `${sc}/${mx} (${pctOf(m)}%)` : '—'}</td>
+    <td class="n" style="color:var(--sun-deep)">${c ? ('★'.repeat(starsFor(m)) || '☆') : '—'}</td></tr>`;
+}
+function renderResults(){
+  const done = CORE.filter(m => state.checked[m.id]);
+  const total = done.reduce((n, m) => n + scoreOf(m), 0);
+  const allDone = done.length === CORE.length;
+  const st = totalStars(), rank = rankFor(st);
+  const pct = Math.round(total / TOTAL_PTS * 100);
+  const weak = MISSIONS.filter(m => state.checked[m.id] && scoreOf(m) / maxOf(m) < .75);
+  const head = allDone
+    ? `<div class="final pop"><span class="big">${total}<small>/${TOTAL_PTS}</small></span>
+        <div><h3>${esc(rank.name)}!</h3><p>You got ${total} of ${TOTAL_PTS} points (${pct}%) and ${st} of ${MAX_STARS} stars.</p></div></div>`
+    : `<div class="final"><span class="big">${done.length}<small>/${CORE.length}</small></span>
+        <div><h3>Missions finished</h3><p>Finish all ${CORE.length} missions to see your final score and rank. So far: ${total} points and ${st} stars.</p></div></div>`;
+  const stamps = CORE.map(m => {
+    const on = state.checked[m.id] && starsFor(m) > 0;
+    return `<div class="t-${m.color}"><div class="pstamp ${on ? 'on' : ''}">${on ? `<span>${esc(m.title)}<span class="ps">${'★'.repeat(starsFor(m))}</span></span>` : `<span>${m.num}<br>${esc(m.title)}</span>`}</div></div>`;
+  }).join('');
+  return `<div class="m-head t-ink"><div class="m-badge" aria-hidden="true">★</div>
+      <div><p class="kicker">Scoreboard</p><h2>Results and badges</h2><p class="sub">Your score in every mission and the lab badges you earned.</p></div></div>
+    ${head}
+    <div class="passport" aria-label="Lab badges">${stamps}</div>
+    <div class="ladder" aria-label="Ranks">${RANKS.map(r => `<span class="${r === rank ? 'on' : ''}">${esc(r.name)} · ${r.min}★</span>`).join('')}</div>
+    <div class="res-wrap"><table class="res-table">
+      <thead><tr><th>Mission</th><th>Topic</th><th class="n">Score</th><th class="n">Stars</th></tr></thead>
+      <tbody>${CORE.map(resRow).join('')}</tbody>
+      <tfoot><tr><td colspan="2">Total (missions 1–8)</td><td class="n">${total}/${TOTAL_PTS} (${pct}%)</td><td class="n" style="color:var(--sun-deep)">${st}/${MAX_STARS} ★</td></tr>
+      <tr><td colspan="2">⚡ Lightning Round best score</td><td class="n">${state.rayo.best} points</td><td class="n">${state.rayo.plays || 0} games</td></tr>
+      <tr class="sub"><td colspan="4">Extra review (doesn’t count for the rank)</td></tr>
+      ${BONUS.map(resRow).join('')}</tfoot>
+    </table></div>
+    <div class="parents"><b>Para papá y mamá</b>
+      <span>El examen sigue los 6 temas que pidió la Miss para la prueba por competencias: fuerzas; movimiento y tipos de movimiento; máquinas simples y su relación con los tipos de movimiento; máquinas complejas; las tres leyes de Newton, y energía renovable y no renovable. Las preguntas salen de las presentaciones de clase (sesiones 1 a 12), que están enlazadas en cada misión.</span>
+      <span>Estrellas por misión según el porcentaje de puntos: 90 % o más = 3, 75 % a 89 % = 2, 60 % a 74 % = 1. Las preguntas de unir y clasificar dan 1 punto por acierto. Las de “Choose ALL / TWO” y las de escribir una palabra se califican exactas, porque entrenan leer bien la instrucción.</span>
+      <span>“Extra review” repasa el método científico (sesión 1) y no cuenta para el rango. La Ronda Relámpago es un bonus.</span>
+      ${weak.length ? `<span><b>Para reforzar:</b> ${weak.map(m => `${esc(m.title)} (${scoreOf(m)} de ${maxOf(m)} puntos, ${pctOf(m)} %)`).join('; ')}.</span>` : ''}
+    </div>
+    <div class="row-actions" id="resetArea">
+      <button class="btn plain" id="resetAsk">Start the whole quest again</button>
+    </div>`;
+}
+
+function renderStage(){
+  const stage = document.getElementById('stage');
+  if (state.current === 'results'){ stage.className = 'stage'; stage.innerHTML = renderResults(); }
+  else if (state.current === 'rayo'){ stage.className = 'stage t-sun'; stage.innerHTML = renderRayo(); }
+  else { const m = byId(state.current) || MISSIONS[0]; stage.className = `stage t-${m.color}`; stage.innerHTML = renderMission(m); }
+}
+function render(){ renderPod(); renderNav(); renderStage(); }
+
+/* =================== EVENTS =================== */
+function go(id){
+  if (id !== 'rayo'){ clearInterval(rTimer); if (RY && RY.phase !== 'end') RY = null; }
+  if (id === 'rayo' && RY && RY.phase === 'end') RY = null;
+  state.current = id; save(); render();
+  document.getElementById('nav').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function updateProgress(m){
+  const ac = answeredCount(m), n = m.questions.length;
+  const f = document.getElementById('progFill'), c = document.getElementById('ansCount');
+  if (!state.checked[m.id]){
+    if (f) f.style.width = (ac / n * 100) + '%';
+    if (c) c.textContent = m.open ? `${ac}/${n} checked · ${scoreOf(m)} points` : `${ac}/${n} answered`;
+  } else {
+    if (f) f.style.width = (scoreOf(m) / maxOf(m) * 100) + '%';
+    if (c) c.textContent = `${scoreOf(m)}/${maxOf(m)} points`;
+  }
+  const msg = document.getElementById('checkMsg'); if (msg && ac === n) msg.textContent = '';
+  renderNav(); renderPod();
+}
+function finishMission(m){
+  state.checked[m.id] = true;
+  state.tries[m.id] = (state.tries[m.id] || 0) + 1;
+  state.best[m.id] = Math.max(state.best[m.id] || 0, scoreOf(m));
+  save();
+}
+function celebrate(m){
+  if (starsFor(m) === 3) confetti(140);
+  if (CORE.every(x => state.checked[x.id]) && totalStars() >= 18 && !m.bonus) setTimeout(() => confetti(260), 500);
+}
+
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g){ go(g.dataset.go); return; }
+  const ro = e.target.closest('[data-ropt]'); if (ro){ rayoAnswer(Number(ro.dataset.ropt)); return; }
+  if (e.target.closest('#rayoGo')){ rayoStart(); return; }
+  if (e.target.closest('#rayoNext')){ rayoNext(); return; }
+  if (e.target.closest('#checkBtn')){
+    const m = byId(state.current), ans = answersOf(m);
+    document.querySelectorAll('.qs > li.todo').forEach(li => li.classList.remove('todo'));
+    const missing = m.questions.map((q, i) => i).filter(i => !answered(m.questions[i], ans[i]));
+    if (missing.length){
+      const hasOpen = missing.some(i => m.questions[i].t === 'open');
+      document.getElementById('checkMsg').textContent = `Answer everything first. ${missing.length === 1 ? '1 question is' : `${missing.length} questions are`} missing (dashed line)${hasOpen ? '. Writing questions need their own “Check my answer” button' : ''}.`;
+      missing.forEach(i => { const li = document.getElementById(`li-${m.id}-q${i}`); if (li) li.classList.add('todo'); });
+      const first = document.getElementById(`li-${m.id}-q${missing[0]}`); if (first) first.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+    finishMission(m); render();
+    document.getElementById('banner').scrollIntoView({behavior:'smooth', block:'center'});
+    celebrate(m);
+    return;
+  }
+  const ob = e.target.closest('[data-open]');
+  if (ob){
+    const m = byId(state.current), i = Number(ob.dataset.open), A = answersOf(m);
+    const v = A[i] || {}; const text = (v.text || '').trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    if (words < MIN_WORDS){
+      const msg = document.getElementById(`${m.id}-q${i}-msg`);
+      if (msg) msg.textContent = `Write a little more: at least ${MIN_WORDS} words (you have ${words}).`;
+      return;
+    }
+    v.done = true; v.ticks = v.ticks || {}; A[i] = v; save();
+    const wasChecked = !!state.checked[m.id];
+    if (m.open && !wasChecked && answeredCount(m) === m.questions.length) finishMission(m);
+    const li = document.getElementById(`li-${m.id}-q${i}`);
+    if (li) li.outerHTML = renderQuestion(m, m.questions[i], i, !!state.checked[m.id] && !m.open);
+    const footer = document.getElementById('footer');
+    if (m.open && !wasChecked && state.checked[m.id] && footer) footer.innerHTML = bannerHtml(m);
+    updateProgress(m);
+    return;
+  }
+  if (e.target.closest('#retryBtn')){
+    const m = byId(state.current);
+    state.answers[m.id] = {}; state.checked[m.id] = false; save(); render();
+    document.getElementById('stage').scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  if (e.target.closest('#resetAsk')){
+    document.getElementById('resetArea').innerHTML = `<div class="confirm"><span>Erase all answers, stars and the best score?</span>
+      <button class="btn coral" id="resetYes">Yes, start again</button><button class="btn plain" id="resetNo">No, keep them</button></div>`;
+    return;
+  }
+  if (e.target.closest('#resetYes')){ state = blank(); RY = null; save(); render(); return; }
+  if (e.target.closest('#resetNo')){ render(); return; }
+});
+
+document.addEventListener('change', e => {
+  const t = e.target; if (!t.dataset || !t.dataset.m) return;
+  const m = byId(t.dataset.m), A = answersOf(m), i = Number(t.dataset.i), q = m.questions[i];
+  if (t.dataset.kind === 'idea'){
+    const o = A[i] || {}; o.ticks = o.ticks || {}; o.ticks[t.dataset.k] = t.checked; A[i] = o; save();
+    const got = earned(q, o), pts = ptsOf(q), el = document.getElementById(`${m.id}-q${i}-got`);
+    if (el){ el.textContent = `${got}/${pts} ideas`; el.className = `verdict ${got === pts ? 'ok' : got ? 'part' : 'bad'}`; }
+    const li = document.getElementById(`li-${m.id}-q${i}`); if (li) li.className = got === pts ? 'ok' : got === 0 ? 'bad' : 'part';
+    if (state.checked[m.id]){
+      state.best[m.id] = Math.max(state.best[m.id] || 0, scoreOf(m));
+      const footer = document.getElementById('footer'); if (footer) footer.innerHTML = bannerHtml(m).replace(' pop', '');
+      save();
+      if (starsFor(m) === 3 && got === pts) celebrate(m);
+    }
+    updateProgress(m); return;
+  }
+  if (state.checked[m.id]) return;
+  if (t.dataset.kind === 'mc') A[i] = Number(t.value);
+  else if (t.dataset.kind === 'tf') A[i] = t.value === 't';
+  else if (t.dataset.kind === 'multi'){
+    const cur = Array.isArray(A[i]) ? A[i].slice() : [], val = Number(t.value);
+    A[i] = t.checked ? (cur.includes(val) ? cur : cur.concat(val)) : cur.filter(x => x !== val);
+    const cnt = document.getElementById(`${m.id}-q${i}-cnt`); if (cnt) cnt.textContent = `${A[i].length} selected`;
+  }
+  else if (t.dataset.kind === 'sort'){ const o = A[i] && typeof A[i] === 'object' ? A[i] : {}; o[t.dataset.k] = Number(t.value); A[i] = o; }
+  else if (t.tagName === 'SELECT'){ const o = A[i] && typeof A[i] === 'object' ? A[i] : {}; o[t.dataset.k] = t.value === '' ? '' : Number(t.value); A[i] = o; }
+  else return;
+  save(); updateProgress(m);
+  const li = t.closest('li'); if (li && answered(q, A[i])) li.classList.remove('todo');
+});
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.matches('input.fillin[data-m]')){
+    const m = byId(t.dataset.m), A = answersOf(m), i = Number(t.dataset.i);
+    if (state.checked[m.id]) return;
+    A[i] = t.value; save(); updateProgress(m);
+    const li = t.closest('li'); if (li && t.value.trim()) li.classList.remove('todo');
+    return;
+  }
+  if (!t.matches('textarea[data-kind="open"]')) return;
+  const m = byId(t.dataset.m), A = answersOf(m), i = Number(t.dataset.i);
+  const o = A[i] || {}; if (o.done) return; o.text = t.value; A[i] = o; save();
+  const words = t.value.trim() ? t.value.trim().split(/\s+/).length : 0;
+  const wc = document.getElementById(`${m.id}-q${i}-wc`); if (wc) wc.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
+  const msg = document.getElementById(`${m.id}-q${i}-msg`); if (msg && words >= MIN_WORDS) msg.textContent = '';
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('input.fillin')){ e.preventDefault(); e.target.blur(); return; }
+  if (state.current !== 'rayo' || !RY || e.target.matches('textarea,input,select')) return;
+  if (RY.phase === 'q'){
+    const isTf = RY.qs[RY.i].q.t === 'tf';
+    const map = isTf ? {t:0, f:1, a:0, b:1, '1':0, '2':1} : {a:0, b:1, c:2, d:3, '1':0, '2':1, '3':2, '4':3};
+    const k = map[e.key.toLowerCase()];
+    if (k !== undefined && k < RY.qs[RY.i].opts.length){ e.preventDefault(); rayoAnswer(k); }
+  } else if (RY.phase === 'fb' && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); rayoNext(); }
+});
+
+/* =================== CONFETTI =================== */
+function confetti(count){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv = document.getElementById('confetti'); cv.hidden = false;
+  const ctx = cv.getContext('2d'); const W = cv.width = innerWidth, H = cv.height = innerHeight;
+  const cols = ['#FFC23A','#E8553F','#12916F','#6A4DF5','#1F7AE0','#1C2A3E'];
+  const ps = Array.from({length:count}, () => ({x:Math.random() * W, y:-20 - Math.random() * H * .5, vx:(Math.random() - .5) * 3, vy:2 + Math.random() * 3,
+    r:Math.random() * Math.PI, vr:(Math.random() - .5) * .2, s:6 + Math.random() * 7, c:cols[Math.random() * cols.length | 0], star:Math.random() < .3}));
+  const t0 = performance.now();
+  (function frame(t){
+    ctx.clearRect(0, 0, W, H);
+    let alive = 0;
+    for (const p of ps){
+      p.x += p.vx; p.y += p.vy; p.vy += .04; p.r += p.vr;
+      if (p.y < H + 30) alive++;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c;
+      if (p.star){ ctx.font = `700 ${p.s * 2.2}px Fredoka, sans-serif`; ctx.fillText('★', 0, 0); }
+      else ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    }
+    if (alive && t - t0 < 6000) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, W, H); cv.hidden = true; }
+  })(t0);
+}
+
+if (!byId(state.current) && state.current !== 'rayo' && state.current !== 'results') state.current = 'm1';
+render();
+</script>
+
+</body></html>
